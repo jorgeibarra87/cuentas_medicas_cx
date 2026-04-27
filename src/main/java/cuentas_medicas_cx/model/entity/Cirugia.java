@@ -23,8 +23,9 @@ public class Cirugia {
     @JoinColumn(name = "PACIENTE_ID")
     private Paciente paciente;
 
-    @Column(name = "INGRESO", length = 20)
-    private String ingreso;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "INGRESO_ID")
+    private Ingreso ingreso;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CUPS_ID")

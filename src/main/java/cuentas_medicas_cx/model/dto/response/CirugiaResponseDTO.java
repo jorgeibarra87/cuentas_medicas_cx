@@ -8,7 +8,8 @@ public class CirugiaResponseDTO {
     private String tipoProcedimiento;
     private Long pacienteId;
     private String pacienteNumeroIdentificacion;
-    private String ingreso;
+    private Long ingresoId;
+    private String ingresoNumero;
     private Long cupsId;
     private String cupsCodigo;
     private String procedCod;

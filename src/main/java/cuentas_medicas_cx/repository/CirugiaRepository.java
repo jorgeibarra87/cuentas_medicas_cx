@@ -9,8 +9,8 @@ public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
     List<Cirugia> findByEntidadSaludId(Long entidadId);
     List<Cirugia> findByTipoProcedimiento(String tipo);
     List<Cirugia> findByEstadoAuditoria(String estado);
-    List<Cirugia> findByIngresoContaining(String ingreso);
     List<Cirugia> findByPacienteNumeroIdentificacion(String numeroIdentificacion);
     List<Cirugia> findByMedicoId(Long medicoId);
     List<Cirugia> findByEspecialidadId(Long especialidadId);
+    List<Cirugia> findByIngresoId(Long ingresoId);
 }

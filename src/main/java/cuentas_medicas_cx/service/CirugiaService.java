@@ -13,6 +13,8 @@ public interface CirugiaService {
 
     List<CirugiaResponseDTO> listarTodos();
 
+    List<CirugiaResponseDTO> listarPorIngreso(Long ingresoId);
+
     CirugiaResponseDTO actualizar(Long id, CirugiaRequestDTO request);
 
     CirugiaResponseDTO cambiarEstado(Long id, String estado);

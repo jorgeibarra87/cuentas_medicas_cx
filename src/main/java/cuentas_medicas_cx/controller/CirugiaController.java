@@ -46,6 +46,14 @@ public class CirugiaController {
         return ResponseEntity.ok(lista);
     }
 
+    @Operation(summary = "Listar cirugías por ingreso",
+            description = "Obtiene la lista de cirugías asociadas a un ingreso específico.",
+            tags={"Cirugias"})
+    @GetMapping("/ingreso/{ingresoId}")
+    public ResponseEntity<List<CirugiaResponseDTO>> listarPorIngreso(@PathVariable Long ingresoId) {
+        return ResponseEntity.ok(cirugiaService.listarPorIngreso(ingresoId));
+    }
+
     @Operation(summary = "Actualizar cirugia",
             description = "Actualiza completamente la información de una cirugia existente por su ID.",
             tags={"Cirugias"})

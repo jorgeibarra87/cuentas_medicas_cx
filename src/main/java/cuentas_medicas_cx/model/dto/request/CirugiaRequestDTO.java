@@ -12,7 +12,7 @@ public class CirugiaRequestDTO {
     @NotBlank(message = "El paciente es obligatorio")
     private Long pacienteId;
 
-    private String ingreso;
+    private Long ingresoId;
     private Long cupsId;
     private String procedCod;
     private String gqx;

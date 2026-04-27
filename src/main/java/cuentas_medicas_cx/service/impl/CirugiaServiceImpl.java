@@ -20,6 +20,7 @@ public class CirugiaServiceImpl implements CirugiaService {
 
     private final CirugiaRepository cirugiaRepository;
     private final PacienteRepository pacienteRepository;
+    private final IngresoRepository ingresoRepository;
     private final CupsProcedimientoRepository cupsProcedimientoRepository;
     private final EspecialidadRepository especialidadRepository;
     private final MedicoRepository medicoRepository;
@@ -38,7 +39,11 @@ public class CirugiaServiceImpl implements CirugiaService {
             entity.setPaciente(paciente);
         }
 
-        entity.setIngreso(request.getIngreso());
+        if (request.getIngresoId() != null) {
+            Ingreso ingreso = ingresoRepository.findById(request.getIngresoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Ingreso no encontrado con id: " + request.getIngresoId()));
+            entity.setIngreso(ingreso);
+        }
 
         if (request.getCupsId() != null) {
             CupsProcedimiento cups = cupsProcedimientoRepository.findById(request.getCupsId())
@@ -112,6 +117,14 @@ public class CirugiaServiceImpl implements CirugiaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<CirugiaResponseDTO> listarPorIngreso(Long ingresoId) {
+        return cirugiaRepository.findByIngresoId(ingresoId).stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Override
     public CirugiaResponseDTO actualizar(Long id, CirugiaRequestDTO request) {
         Cirugia entity = cirugiaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cirugia no encontrada con id: " + id));
@@ -124,7 +137,11 @@ public class CirugiaServiceImpl implements CirugiaService {
             entity.setPaciente(paciente);
         }
 
-        entity.setIngreso(request.getIngreso());
+        if (request.getIngresoId() != null) {
+            Ingreso ingreso = ingresoRepository.findById(request.getIngresoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Ingreso no encontrado con id: " + request.getIngresoId()));
+            entity.setIngreso(ingreso);
+        }
 
         if (request.getCupsId() != null) {
             CupsProcedimiento cups = cupsProcedimientoRepository.findById(request.getCupsId())
@@ -195,7 +212,6 @@ public class CirugiaServiceImpl implements CirugiaService {
         CirugiaResponseDTO dto = new CirugiaResponseDTO();
         dto.setId(entity.getId());
         dto.setTipoProcedimiento(entity.getTipoProcedimiento());
-        dto.setIngreso(entity.getIngreso());
         dto.setProcedCod(entity.getProcedCod());
         dto.setGqx(entity.getGqx());
         dto.setIntervencion(entity.getIntervencion());
@@ -214,6 +230,11 @@ public class CirugiaServiceImpl implements CirugiaService {
         if (entity.getPaciente() != null) {
             dto.setPacienteId(entity.getPaciente().getId());
             dto.setPacienteNumeroIdentificacion(entity.getPaciente().getNumeroIdentificacion());
+        }
+
+        if (entity.getIngreso() != null) {
+            dto.setIngresoId(entity.getIngreso().getId());
+            dto.setIngresoNumero(entity.getIngreso().getNumeroIngreso());
         }
 
         if (entity.getCups() != null) {

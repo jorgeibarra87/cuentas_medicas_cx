@@ -155,7 +155,9 @@ public class CirugiaServiceImpl implements CirugiaService {
         }
 
         Set<String> clavesExistentes = new HashSet<>();
-        List<Cirugia> cirugiasExistentes = cirugiaRepository.findByFechaCargueBetween(fechaInicio, fechaFin);
+        String fechaIniNorm = normalizarFecha(fechaInicio);
+        String fechaFinNorm = normalizarFecha(fechaFin);
+        List<Cirugia> cirugiasExistentes = cirugiaRepository.findByFechaCargueBetween(fechaIniNorm, fechaFinNorm);
         for (Cirugia c : cirugiasExistentes) {
             String clave = c.getTipoProcedimiento() + "|" + c.getProcedCod() + "|" + c.getGqx() + "|" + normalizarFecha(c.getFechaCargue());
             clavesExistentes.add(clave);
@@ -450,7 +452,7 @@ public class CirugiaServiceImpl implements CirugiaService {
     private String normalizarFecha(String fecha) {
         if (fecha == null || fecha.isEmpty()) return "";
         
-        fecha = fecha.trim();
+        fecha = fecha.trim().replace("/", "-");
         
         try {
             if (fecha.contains("-")) {

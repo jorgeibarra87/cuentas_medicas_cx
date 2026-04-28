@@ -59,7 +59,9 @@ public class DinamicaServiceImpl implements DinamicaService {
         INNER JOIN HCNSOLPQX ON HCNSOLPQX.hcnfolio = hcnfolio.oid
         INNER JOIN genserips ON genserips.oid = HCNSOLPQX.genserips
         INNER JOIN HCNRESPQX ON HCNSOLPQX.HCNRESPQX = HCNRESPQX.oid
+        INNER JOIN GENARESER ON GENARESER.OID = genserips.GENARESER1
         INNER JOIN GENMEDICO ON GENMEDICO.OID = HCNRESPQX.GENMEDICO
+        INNER JOIN gentercer ON gentercer.oid = genmedico.gentercer
         INNER JOIN GENESPECI ON HCNFOLIO.GENESPECI = GENESPECI.OID
         INNER JOIN GENDETCON ON GENDETCON.OID = adningreso.GENDETCON
         INNER JOIN x_confac ON x_confac.codigo = gendetcon.gdeconfac
@@ -94,7 +96,9 @@ public class DinamicaServiceImpl implements DinamicaService {
         INNER JOIN HCNSOLEXA ON HCNSOLEXA.adningreso = adningreso.oid
         INNER JOIN genserips ON genserips.oid = HCNSOLEXA.genserips
         INNER JOIN HCNRESEXA ON HCNSOLEXA.HCNRESEXA = HCNRESEXA.oid
+        INNER JOIN GENARESER ON GENARESER.OID = genserips.GENARESER1
         INNER JOIN GENMEDICO ON GENMEDICO.OID = HCNRESEXA.GENMEDICO
+        INNER JOIN gentercer ON gentercer.oid = genmedico.gentercer
         INNER JOIN GENDETCON ON GENDETCON.OID = adningreso.GENDETCON
         INNER JOIN x_confac ON x_confac.codigo = gendetcon.gdeconfac
         WHERE hcrfecres BETWEEN ?1 AND ?2
@@ -124,6 +128,8 @@ public class DinamicaServiceImpl implements DinamicaService {
         FROM HCMHC50
         INNER JOIN HCNFOLIO ON HCMHC50.HCNFOLIO = HCNFOLIO.OID
         INNER JOIN GENPACIEN ON HCNFOLIO.GENPACIEN = GENPACIEN.OID
+        INNER JOIN genmunici ON genmunici.oid = genpacien.DGNMUNICIPIO
+        INNER JOIN HCNTIPHIS ON HCNFOLIO.HCNTIPHIS = HCNTIPHIS.OID
         INNER JOIN GENESPECI ON HCNFOLIO.GENESPECI = GENESPECI.OID
         INNER JOIN HCNQXEPAC ON HCNFOLIO.OID = HCNQXEPAC.HCNFOLIO
         INNER JOIN GENSERIPS ON HCNQXEPAC.GENSERIPS = GENSERIPS.OID
@@ -156,6 +162,8 @@ public class DinamicaServiceImpl implements DinamicaService {
         FROM HCMHC101
         INNER JOIN HCNFOLIO ON HCMHC101.HCNFOLIO = HCNFOLIO.OID
         INNER JOIN GENPACIEN ON HCNFOLIO.GENPACIEN = GENPACIEN.OID
+        INNER JOIN genmunici ON genmunici.oid = genpacien.DGNMUNICIPIO
+        INNER JOIN HCNTIPHIS ON HCNFOLIO.HCNTIPHIS = HCNTIPHIS.OID
         INNER JOIN GENESPECI ON HCNFOLIO.GENESPECI = GENESPECI.OID
         INNER JOIN HCNQXEPAC ON HCNFOLIO.OID = HCNQXEPAC.HCNFOLIO
         INNER JOIN GENSERIPS ON HCNQXEPAC.GENSERIPS = GENSERIPS.OID

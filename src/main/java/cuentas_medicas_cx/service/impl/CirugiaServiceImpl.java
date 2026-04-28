@@ -4,9 +4,11 @@ import cuentas_medicas_cx.model.dto.request.CirugiaRequestDTO;
 import cuentas_medicas_cx.model.dto.request.ImportarCirugiasRequestDTO;
 import cuentas_medicas_cx.model.dto.response.CirugiaResponseDTO;
 import cuentas_medicas_cx.model.dto.response.ImportarCirugiasResponseDTO;
+import cuentas_medicas_cx.model.dto.external.DinamicaCirugiaDTO;
 import cuentas_medicas_cx.model.entity.*;
 import cuentas_medicas_cx.repository.*;
 import cuentas_medicas_cx.service.CirugiaService;
+import cuentas_medicas_cx.service.DinamicaService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -29,6 +31,7 @@ public class CirugiaServiceImpl implements CirugiaService {
     private final EspecialidadRepository especialidadRepository;
     private final MedicoRepository medicoRepository;
     private final EntidadesSaludRepository entidadesSaludRepository;
+    private final DinamicaService dinamicaService;
     private final ModelMapper modelMapper;
 
     @Override
@@ -116,6 +119,105 @@ public class CirugiaServiceImpl implements CirugiaService {
         }
 
         response.setTotalRegistros(request.getDatos().size());
+        response.setExitosos(exitosos);
+        response.setErrores(errores);
+        response.setMensajes(mensajes);
+        return response;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DinamicaCirugiaDTO> obtenerDeDinamica(String fechaInicio, String fechaFin) {
+        return dinamicaService.obtenerCirugiasPorFechas(fechaInicio, fechaFin);
+    }
+
+    @Override
+    @Transactional
+    public ImportarCirugiasResponseDTO importarDesdeDinamicaBD(String fechaInicio, String fechaFin) {
+        ImportarCirugiasResponseDTO response = new ImportarCirugiasResponseDTO();
+        response.setRangoFechas(fechaInicio + " - " + fechaFin);
+        List<String> mensajes = new ArrayList<>();
+        int exitosos = 0;
+        int errores = 0;
+
+        List<DinamicaCirugiaDTO> datosDinamica = dinamicaService.obtenerCirugiasPorFechas(fechaInicio, fechaFin);
+        
+        if (datosDinamica.isEmpty()) {
+            response.setTotalRegistros(0);
+            response.setExitosos(0);
+            response.setErrores(0);
+            mensajes.add("No se encontraron datos en el rango especificado");
+            response.setMensajes(mensajes);
+            return response;
+        }
+
+        for (DinamicaCirugiaDTO dato : datosDinamica) {
+            try {
+                Cirugia cirugia = new Cirugia();
+                cirugia.setTipoProcedimiento(dato.getTipo());
+                cirugia.setProcedCod(dato.getProcedCod());
+                cirugia.setGqx(dato.getGrupoqxCod());
+                cirugia.setIntervencion(dato.getIntervencion());
+                cirugia.setRegimen(dato.getRegimen());
+                cirugia.setFechaSolicitud(dato.getFechaSolicitud());
+                cirugia.setFechaCargue(dato.getFechaCargue());
+                cirugia.setHoraCargue(dato.getHoraCargue());
+                cirugia.setFechaResultado(dato.getFechaResultado());
+                cirugia.setEstadoAuditoria("PENDIENTE");
+
+                if (dato.getPaciente() != null && !dato.getPaciente().isEmpty()) {
+                    Optional<Paciente> pacienteOpt = pacienteRepository.findByNumeroIdentificacion(dato.getPaciente());
+                    if (pacienteOpt.isPresent()) {
+                        cirugia.setPaciente(pacienteOpt.get());
+                    }
+                }
+
+                if (dato.getIngreso() != null && !dato.getIngreso().isEmpty()) {
+                    Optional<Ingreso> ingresoOpt = ingresoRepository.findByNumeroIngreso(dato.getIngreso());
+                    if (ingresoOpt.isPresent()) {
+                        cirugia.setIngreso(ingresoOpt.get());
+                    }
+                }
+
+                if (dato.getCups() != null && !dato.getCups().isEmpty()) {
+                    Optional<CupsProcedimiento> cupsOpt = cupsProcedimientoRepository.findByCodigo(dato.getCups());
+                    if (cupsOpt.isPresent()) {
+                        cirugia.setCups(cupsOpt.get());
+                    }
+                }
+
+                if (dato.getEspecialidad() != null && !dato.getEspecialidad().isEmpty()) {
+                    Optional<Especialidad> espOpt = especialidadRepository.findByNombreContainingIgnoreCase(dato.getEspecialidad()).stream().findFirst();
+                    if (espOpt.isPresent()) {
+                        cirugia.setEspecialidad(espOpt.get());
+                    }
+                }
+
+                if (dato.getMedico() != null && !dato.getMedico().isEmpty()) {
+                    Optional<Medico> medicoOpt = medicoRepository.findFirstByNombreCompletoContainingIgnoreCase(dato.getMedico());
+                    if (medicoOpt.isPresent()) {
+                        cirugia.setMedico(medicoOpt.get());
+                    }
+                }
+
+                if (dato.getEntidad() != null && !dato.getEntidad().isEmpty()) {
+                    Optional<EntidadesSalud> entOpt = entidadesSaludRepository.findByNombreContainingIgnoreCase(dato.getEntidad()).stream().findFirst();
+                    if (entOpt.isPresent()) {
+                        cirugia.setEntidadSalud(entOpt.get());
+                    }
+                }
+
+                cirugiaRepository.save(cirugia);
+                exitosos++;
+
+            } catch (Exception e) {
+                errores++;
+                mensajes.add("Error: " + dato.getIngreso() + " - " + e.getMessage());
+            }
+        }
+
+        mensajes.add(0, "Se procesaron " + datosDinamica.size() + " registros");
+        response.setTotalRegistros(datosDinamica.size());
         response.setExitosos(exitosos);
         response.setErrores(errores);
         response.setMensajes(mensajes);

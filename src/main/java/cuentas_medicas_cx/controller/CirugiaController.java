@@ -4,6 +4,7 @@ import cuentas_medicas_cx.model.dto.request.CirugiaRequestDTO;
 import cuentas_medicas_cx.model.dto.request.ImportarCirugiasRequestDTO;
 import cuentas_medicas_cx.model.dto.response.CirugiaResponseDTO;
 import cuentas_medicas_cx.model.dto.response.ImportarCirugiasResponseDTO;
+import cuentas_medicas_cx.model.dto.external.DinamicaCirugiaDTO;
 import cuentas_medicas_cx.service.CirugiaService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -20,6 +21,26 @@ import java.util.List;
 public class CirugiaController {
 
     private final CirugiaService cirugiaService;
+
+    @Operation(summary = "Importar cirugías desde Dinámica (BD)",
+            description = "Ejecuta consulta directa a SQL Server de Dinámica y guarda los datos.",
+            tags={"Cirugias"})
+    @PostMapping("/importar/bd")
+    public ResponseEntity<ImportarCirugiasResponseDTO> importarDesdeDinamicaBD(
+            @RequestParam String fechaInicio,
+            @RequestParam String fechaFin) {
+        return ResponseEntity.ok(cirugiaService.importarDesdeDinamicaBD(fechaInicio, fechaFin));
+    }
+
+    @Operation(summary = "Obtener cirugías de Dinámica sin guardar",
+            description = "Consulta SQL Server de Dinámica y retorna datos sin guardar.",
+            tags={"Cirugias"})
+    @GetMapping("/dinamica")
+    public ResponseEntity<List<DinamicaCirugiaDTO>> obtenerDeDinamica(
+            @RequestParam String fechaInicio,
+            @RequestParam String fechaFin) {
+        return ResponseEntity.ok(cirugiaService.obtenerDeDinamica(fechaInicio, fechaFin));
+    }
 
     @Operation(summary = "Importar cirugías desde Dinámica",
             description = "Importa cirugías desde datos de Dinámica Gerencial en un rango de fechas.",

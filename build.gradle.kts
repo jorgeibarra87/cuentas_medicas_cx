@@ -25,6 +25,7 @@ dependencies {
 	implementation("org.modelmapper:modelmapper:3.1.1")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("com.auth0:java-jwt:4.4.0")
+	implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")

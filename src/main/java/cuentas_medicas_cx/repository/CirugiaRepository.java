@@ -31,4 +31,6 @@ public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
     @Query("SELECT c FROM Cirugia c JOIN c.paciente p " +
            "WHERE c.fechaCargue >= :fechaInicio AND c.fechaCargue <= :fechaFin")
     List<Cirugia> findByRangoFechasCargue(@Param("fechaInicio") String fechaInicio, @Param("fechaFin") String fechaFin);
+
+    List<Cirugia> findByFechaCargueBetween(String fechaInicio, String fechaFin);
 }

@@ -154,8 +154,23 @@ public class CirugiaServiceImpl implements CirugiaService {
             return response;
         }
 
+        Set<String> clavesExistentes = new HashSet<>();
+        List<Cirugia> cirugiasExistentes = cirugiaRepository.findByFechaCargueBetween(fechaInicio, fechaFin);
+        for (Cirugia c : cirugiasExistentes) {
+            String clave = c.getTipoProcedimiento() + "|" + c.getProcedCod() + "|" + c.getGqx() + "|" + c.getFechaCargue();
+            clavesExistentes.add(clave);
+        }
+
         for (DinamicaCirugiaDTO dato : datosDinamica) {
             try {
+                String clave = dato.getTipo() + "|" + dato.getProcedCod() + "|" + dato.getGrupoqxCod() + "|" + dato.getFechaCargue();
+
+                if (clavesExistentes.contains(clave)) {
+                    omitidos++;
+                    continue;
+                }
+                clavesExistentes.add(clave);
+
                 Cirugia cirugia = new Cirugia();
                 cirugia.setTipoProcedimiento(dato.getTipo());
                 cirugia.setProcedCod(dato.getProcedCod());
@@ -178,7 +193,7 @@ public class CirugiaServiceImpl implements CirugiaService {
         }
 
         mensajes.add(0, "Se procesaron " + datosDinamica.size() + " registros");
-        mensajes.add(1, "Nuevos guardados: " + exitosos + " | Errores: " + errores);
+        mensajes.add(1, "Nuevos guardados: " + exitosos + " | Omitidos: " + omitidos + " | Errores: " + errores);
         response.setTotalRegistros(datosDinamica.size());
         response.setExitosos(exitosos);
         response.setErrores(errores);

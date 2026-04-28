@@ -19,7 +19,7 @@ public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
 
     @Query("SELECT c FROM Cirugia c WHERE c.tipoProcedimiento = :tipo " +
            "AND c.procedCod = :procCod AND c.cups.codigo = :cups " +
-           "AND c.gqx = :gqx AND c.paciente.numeroIdentificacion = :paciente")
+           "AND COALESCE(c.gqx, '') = COALESCE(:gqx, '') AND c.paciente.numeroIdentificacion = :paciente")
     Optional<Cirugia> findByClaveUnica(
             @Param("tipo") String tipo,
             @Param("procCod") String procedCod,
@@ -27,4 +27,8 @@ public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
             @Param("gqx") String gqx,
             @Param("paciente") String paciente
     );
+
+    @Query("SELECT c FROM Cirugia c JOIN c.paciente p " +
+           "WHERE c.fechaCargue >= :fechaInicio AND c.fechaCargue <= :fechaFin")
+    List<Cirugia> findByRangoFechasCargue(@Param("fechaInicio") String fechaInicio, @Param("fechaFin") String fechaFin);
 }

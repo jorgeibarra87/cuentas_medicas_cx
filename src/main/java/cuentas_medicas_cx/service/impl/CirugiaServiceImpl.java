@@ -16,8 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -152,9 +154,22 @@ public class CirugiaServiceImpl implements CirugiaService {
             return response;
         }
 
+        List<Cirugia> cirugiasExistentes = cirugiaRepository.findByRangoFechasCargue(fechaInicio, fechaFin);
+        Set<String> clavesExistentes = new HashSet<>();
+        for (Cirugia c : cirugiasExistentes) {
+            String clave = buildClaveUnica(
+                    c.getTipoProcedimiento(),
+                    c.getProcedCod(),
+                    c.getCups() != null ? c.getCups().getCodigo() : null,
+                    c.getGqx(),
+                    c.getPaciente() != null ? c.getPaciente().getNumeroIdentificacion() : null
+            );
+            clavesExistentes.add(clave);
+        }
+
         for (DinamicaCirugiaDTO dato : datosDinamica) {
             try {
-                Optional<Cirugia> existente = cirugiaRepository.findByClaveUnica(
+                String clave = buildClaveUnica(
                         dato.getTipo(),
                         dato.getProcedCod(),
                         dato.getCups(),
@@ -162,10 +177,12 @@ public class CirugiaServiceImpl implements CirugiaService {
                         dato.getPaciente()
                 );
 
-                if (existente.isPresent()) {
+                if (clavesExistentes.contains(clave)) {
                     omitidos++;
                     continue;
                 }
+
+                clavesExistentes.add(clave);
 
                 Cirugia cirugia = new Cirugia();
                 cirugia.setTipoProcedimiento(dato.getTipo());
@@ -475,5 +492,13 @@ public class CirugiaServiceImpl implements CirugiaService {
         }
 
         return dto;
+    }
+
+    private String buildClaveUnica(String tipo, String procedCod, String cups, String gqx, String paciente) {
+        return (tipo != null ? tipo : "") + "|" +
+               (procedCod != null ? procedCod : "") + "|" +
+               (cups != null ? cups : "") + "|" +
+               (gqx != null ? gqx : "") + "|" +
+               (paciente != null ? paciente : "");
     }
 }

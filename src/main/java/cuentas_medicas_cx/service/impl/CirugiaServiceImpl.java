@@ -139,6 +139,7 @@ public class CirugiaServiceImpl implements CirugiaService {
         List<String> mensajes = new ArrayList<>();
         int exitosos = 0;
         int errores = 0;
+        int omitidos = 0;
 
         List<DinamicaCirugiaDTO> datosDinamica = dinamicaService.obtenerCirugiasPorFechas(fechaInicio, fechaFin);
         
@@ -153,6 +154,19 @@ public class CirugiaServiceImpl implements CirugiaService {
 
         for (DinamicaCirugiaDTO dato : datosDinamica) {
             try {
+                Optional<Cirugia> existente = cirugiaRepository.findByClaveUnica(
+                        dato.getTipo(),
+                        dato.getProcedCod(),
+                        dato.getCups(),
+                        dato.getGrupoqxCod(),
+                        dato.getPaciente()
+                );
+
+                if (existente.isPresent()) {
+                    omitidos++;
+                    continue;
+                }
+
                 Cirugia cirugia = new Cirugia();
                 cirugia.setTipoProcedimiento(dato.getTipo());
                 cirugia.setProcedCod(dato.getProcedCod());
@@ -217,6 +231,7 @@ public class CirugiaServiceImpl implements CirugiaService {
         }
 
         mensajes.add(0, "Se procesaron " + datosDinamica.size() + " registros");
+        mensajes.add(1, "Nuevos guardados: " + exitosos + " | Omitidos (ya existen): " + omitidos + " | Errores: " + errores);
         response.setTotalRegistros(datosDinamica.size());
         response.setExitosos(exitosos);
         response.setErrores(errores);

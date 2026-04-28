@@ -157,13 +157,13 @@ public class CirugiaServiceImpl implements CirugiaService {
         Set<String> clavesExistentes = new HashSet<>();
         List<Cirugia> cirugiasExistentes = cirugiaRepository.findByFechaCargueBetween(fechaInicio, fechaFin);
         for (Cirugia c : cirugiasExistentes) {
-            String clave = c.getTipoProcedimiento() + "|" + c.getProcedCod() + "|" + c.getGqx() + "|" + c.getFechaCargue();
+            String clave = c.getTipoProcedimiento() + "|" + c.getProcedCod() + "|" + c.getGqx() + "|" + normalizarFecha(c.getFechaCargue());
             clavesExistentes.add(clave);
         }
 
         for (DinamicaCirugiaDTO dato : datosDinamica) {
             try {
-                String clave = dato.getTipo() + "|" + dato.getProcedCod() + "|" + dato.getGrupoqxCod() + "|" + dato.getFechaCargue();
+                String clave = dato.getTipo() + "|" + dato.getProcedCod() + "|" + dato.getGrupoqxCod() + "|" + normalizarFecha(dato.getFechaCargue());
 
                 if (clavesExistentes.contains(clave)) {
                     omitidos++;
@@ -177,10 +177,10 @@ public class CirugiaServiceImpl implements CirugiaService {
                 cirugia.setGqx(dato.getGrupoqxCod());
                 cirugia.setIntervencion(dato.getIntervencion());
                 cirugia.setRegimen(dato.getRegimen());
-                cirugia.setFechaSolicitud(dato.getFechaSolicitud());
-                cirugia.setFechaCargue(dato.getFechaCargue());
+                cirugia.setFechaSolicitud(normalizarFecha(dato.getFechaSolicitud()));
+                cirugia.setFechaCargue(normalizarFecha(dato.getFechaCargue()));
                 cirugia.setHoraCargue(dato.getHoraCargue());
-                cirugia.setFechaResultado(dato.getFechaResultado());
+                cirugia.setFechaResultado(normalizarFecha(dato.getFechaResultado()));
                 cirugia.setEstadoAuditoria("PENDIENTE");
 
                 cirugiaRepository.save(cirugia);
@@ -445,5 +445,48 @@ public class CirugiaServiceImpl implements CirugiaService {
                (cups != null ? cups : "") + "|" +
                (gqx != null ? gqx : "") + "|" +
                (paciente != null ? paciente : "");
+    }
+
+    private String normalizarFecha(String fecha) {
+        if (fecha == null || fecha.isEmpty()) return "";
+        
+        fecha = fecha.trim();
+        
+        try {
+            if (fecha.contains("-")) {
+                String[] parts = fecha.split("-");
+                if (parts.length == 3) {
+                    String dia = parts[0].trim();
+                    String mes = parts[1].trim().toLowerCase();
+                    String anio = parts[2].trim();
+                    
+                    if (anio.length() == 2) {
+                        anio = "20" + anio;
+                    }
+                    
+                    int mesNum;
+                    switch (mes) {
+                        case "ene": case "jan": case "01": case "1": mesNum = 1; break;
+                        case "feb": case "02": case "2": mesNum = 2; break;
+                        case "mar": case "03": case "3": mesNum = 3; break;
+                        case "abr": case "apr": case "04": case "4": mesNum = 4; break;
+                        case "may": case "05": case "5": mesNum = 5; break;
+                        case "jun": case "06": case "6": mesNum = 6; break;
+                        case "jul": case "07": case "7": mesNum = 7; break;
+                        case "ago": case "aug": case "08": case "8": mesNum = 8; break;
+                        case "sep": case "09": case "9": mesNum = 9; break;
+                        case "oct": case "10": mesNum = 10; break;
+                        case "nov": case "11": mesNum = 11; break;
+                        case "dic": case "dec": case "12": mesNum = 12; break;
+                        default: return fecha;
+                    }
+                    
+                    return String.format("%04d-%02d-%02d", Integer.parseInt(anio), mesNum, Integer.parseInt(dia));
+                }
+            }
+        } catch (Exception e) {
+            return fecha;
+        }
+        return fecha;
     }
 }

@@ -1,7 +1,9 @@
 package cuentas_medicas_cx.service.impl;
 
 import cuentas_medicas_cx.model.dto.request.CirugiaRequestDTO;
+import cuentas_medicas_cx.model.dto.request.ImportarCirugiasRequestDTO;
 import cuentas_medicas_cx.model.dto.response.CirugiaResponseDTO;
+import cuentas_medicas_cx.model.dto.response.ImportarCirugiasResponseDTO;
 import cuentas_medicas_cx.model.entity.*;
 import cuentas_medicas_cx.repository.*;
 import cuentas_medicas_cx.service.CirugiaService;
@@ -11,7 +13,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,97 @@ public class CirugiaServiceImpl implements CirugiaService {
     private final MedicoRepository medicoRepository;
     private final EntidadesSaludRepository entidadesSaludRepository;
     private final ModelMapper modelMapper;
+
+    @Override
+    @Transactional
+    public ImportarCirugiasResponseDTO importarDesdeDinamica(ImportarCirugiasRequestDTO request) {
+        ImportarCirugiasResponseDTO response = new ImportarCirugiasResponseDTO();
+        response.setRangoFechas(request.getFechaInicio() + " - " + request.getFechaFin());
+        List<String> mensajes = new ArrayList<>();
+        int exitosos = 0;
+        int errores = 0;
+
+        if (request.getDatos() == null || request.getDatos().isEmpty()) {
+            response.setTotalRegistros(0);
+            response.setErrores(0);
+            response.setExitosos(0);
+            mensajes.add("No hay datos para importar");
+            response.setMensajes(mensajes);
+            return response;
+        }
+
+        for (ImportarCirugiasRequestDTO.DatosDinamicaDTO dato : request.getDatos()) {
+            try {
+                Cirugia cirugia = new Cirugia();
+                cirugia.setTipoProcedimiento(dato.getTipo());
+                cirugia.setProcedCod(dato.getProcedCod());
+                cirugia.setGqx(dato.getGqx());
+                cirugia.setIntervencion(dato.getIntervencion());
+                cirugia.setRegimen(dato.getRegimen());
+                cirugia.setFechaSolicitud(dato.getFechaSolicitud());
+                cirugia.setFechaCargue(dato.getFechaCargue());
+                cirugia.setHoraCargue(dato.getHoraCargue());
+                cirugia.setFechaResultado(dato.getFechaResultado());
+                cirugia.setEstadoAuditoria("PENDIENTE");
+
+                if (dato.getPaciente() != null && !dato.getPaciente().isEmpty()) {
+                    Optional<Paciente> pacienteOpt = pacienteRepository.findByNumeroIdentificacion(dato.getPaciente());
+                    if (pacienteOpt.isPresent()) {
+                        cirugia.setPaciente(pacienteOpt.get());
+                    }
+                }
+
+                if (dato.getIngreso() != null && !dato.getIngreso().isEmpty()) {
+                    Optional<Ingreso> ingresoOpt = ingresoRepository.findByNumeroIngreso(dato.getIngreso());
+                    if (ingresoOpt.isPresent()) {
+                        cirugia.setIngreso(ingresoOpt.get());
+                    }
+                }
+
+                if (dato.getCups() != null && !dato.getCups().isEmpty()) {
+                    Optional<CupsProcedimiento> cupsOpt = cupsProcedimientoRepository.findByCodigo(dato.getCups());
+                    if (cupsOpt.isPresent()) {
+                        cirugia.setCups(cupsOpt.get());
+                    }
+                }
+
+                if (dato.getEspecialidad() != null && !dato.getEspecialidad().isEmpty()) {
+                    Optional<Especialidad> espOpt = especialidadRepository.findByNombreContainingIgnoreCase(dato.getEspecialidad()).stream().findFirst();
+                    if (espOpt.isPresent()) {
+                        cirugia.setEspecialidad(espOpt.get());
+                    }
+                }
+
+                if (dato.getMedico() != null && !dato.getMedico().isEmpty()) {
+                    Optional<Medico> medicoOpt = medicoRepository.findFirstByNombreCompletoContainingIgnoreCase(dato.getMedico());
+                    if (medicoOpt.isPresent()) {
+                        cirugia.setMedico(medicoOpt.get());
+                    }
+                }
+
+                if (dato.getEntidad() != null && !dato.getEntidad().isEmpty()) {
+                    Optional<EntidadesSalud> entOpt = entidadesSaludRepository.findByNombreContainingIgnoreCase(dato.getEntidad()).stream().findFirst();
+                    if (entOpt.isPresent()) {
+                        cirugia.setEntidadSalud(entOpt.get());
+                    }
+                }
+
+                cirugiaRepository.save(cirugia);
+                exitosos++;
+                mensajes.add("Importado: " + dato.getIngreso() + " - " + dato.getIntervencion());
+
+            } catch (Exception e) {
+                errores++;
+                mensajes.add("Error al importar: " + dato.getIngreso() + " - " + e.getMessage());
+            }
+        }
+
+        response.setTotalRegistros(request.getDatos().size());
+        response.setExitosos(exitosos);
+        response.setErrores(errores);
+        response.setMensajes(mensajes);
+        return response;
+    }
 
     @Override
     @Transactional

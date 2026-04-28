@@ -1,7 +1,9 @@
 package cuentas_medicas_cx.controller;
 
 import cuentas_medicas_cx.model.dto.request.CirugiaRequestDTO;
+import cuentas_medicas_cx.model.dto.request.ImportarCirugiasRequestDTO;
 import cuentas_medicas_cx.model.dto.response.CirugiaResponseDTO;
+import cuentas_medicas_cx.model.dto.response.ImportarCirugiasResponseDTO;
 import cuentas_medicas_cx.service.CirugiaService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -18,6 +20,14 @@ import java.util.List;
 public class CirugiaController {
 
     private final CirugiaService cirugiaService;
+
+    @Operation(summary = "Importar cirugías desde Dinámica",
+            description = "Importa cirugías desde datos de Dinámica Gerencial en un rango de fechas.",
+            tags={"Cirugias"})
+    @PostMapping("/importar")
+    public ResponseEntity<ImportarCirugiasResponseDTO> importarDesdeDinamica(@Valid @RequestBody ImportarCirugiasRequestDTO request) {
+        return ResponseEntity.ok(cirugiaService.importarDesdeDinamica(request));
+    }
 
     @Operation(summary = "Crear cirugia",
             description = "Permite crear nuevos registros de cirugias.",

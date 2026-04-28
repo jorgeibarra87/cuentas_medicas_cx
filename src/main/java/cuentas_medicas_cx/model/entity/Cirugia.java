@@ -89,6 +89,21 @@ public class Cirugia {
     @Column(name = "ESTADO_AUDITORIA", length = 20)
     private String estadoAuditoria;
 
+    @Column(name = "REGIMEN", length = 50)
+    private String regimen;
+
+    @Column(name = "FECHA_SOLICITUD")
+    private String fechaSolicitud;
+
+    @Column(name = "FECHA_CARGUE")
+    private String fechaCargue;
+
+    @Column(name = "HORA_CARGUE", length = 10)
+    private String horaCargue;
+
+    @Column(name = "FECHA_RESULTADO")
+    private String fechaResultado;
+
     @Column(name = "CREATED_AT")
     private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -154,36 +154,8 @@ public class CirugiaServiceImpl implements CirugiaService {
             return response;
         }
 
-        List<Cirugia> cirugiasExistentes = cirugiaRepository.findByRangoFechasCargue(fechaInicio, fechaFin);
-        Set<String> clavesExistentes = new HashSet<>();
-        for (Cirugia c : cirugiasExistentes) {
-            String clave = buildClaveUnica(
-                    c.getTipoProcedimiento(),
-                    c.getProcedCod(),
-                    c.getCups() != null ? c.getCups().getCodigo() : null,
-                    c.getGqx(),
-                    c.getPaciente() != null ? c.getPaciente().getNumeroIdentificacion() : null
-            );
-            clavesExistentes.add(clave);
-        }
-
         for (DinamicaCirugiaDTO dato : datosDinamica) {
             try {
-                String clave = buildClaveUnica(
-                        dato.getTipo(),
-                        dato.getProcedCod(),
-                        dato.getCups(),
-                        dato.getGrupoqxCod(),
-                        dato.getPaciente()
-                );
-
-                if (clavesExistentes.contains(clave)) {
-                    omitidos++;
-                    continue;
-                }
-
-                clavesExistentes.add(clave);
-
                 Cirugia cirugia = new Cirugia();
                 cirugia.setTipoProcedimiento(dato.getTipo());
                 cirugia.setProcedCod(dato.getProcedCod());
@@ -196,48 +168,6 @@ public class CirugiaServiceImpl implements CirugiaService {
                 cirugia.setFechaResultado(dato.getFechaResultado());
                 cirugia.setEstadoAuditoria("PENDIENTE");
 
-                if (dato.getPaciente() != null && !dato.getPaciente().isEmpty()) {
-                    Optional<Paciente> pacienteOpt = pacienteRepository.findByNumeroIdentificacion(dato.getPaciente());
-                    if (pacienteOpt.isPresent()) {
-                        cirugia.setPaciente(pacienteOpt.get());
-                    }
-                }
-
-                if (dato.getIngreso() != null && !dato.getIngreso().isEmpty()) {
-                    Optional<Ingreso> ingresoOpt = ingresoRepository.findByNumeroIngreso(dato.getIngreso());
-                    if (ingresoOpt.isPresent()) {
-                        cirugia.setIngreso(ingresoOpt.get());
-                    }
-                }
-
-                if (dato.getCups() != null && !dato.getCups().isEmpty()) {
-                    Optional<CupsProcedimiento> cupsOpt = cupsProcedimientoRepository.findByCodigo(dato.getCups());
-                    if (cupsOpt.isPresent()) {
-                        cirugia.setCups(cupsOpt.get());
-                    }
-                }
-
-                if (dato.getEspecialidad() != null && !dato.getEspecialidad().isEmpty()) {
-                    Optional<Especialidad> espOpt = especialidadRepository.findByNombreContainingIgnoreCase(dato.getEspecialidad()).stream().findFirst();
-                    if (espOpt.isPresent()) {
-                        cirugia.setEspecialidad(espOpt.get());
-                    }
-                }
-
-                if (dato.getMedico() != null && !dato.getMedico().isEmpty()) {
-                    Optional<Medico> medicoOpt = medicoRepository.findFirstByNombreCompletoContainingIgnoreCase(dato.getMedico());
-                    if (medicoOpt.isPresent()) {
-                        cirugia.setMedico(medicoOpt.get());
-                    }
-                }
-
-                if (dato.getEntidad() != null && !dato.getEntidad().isEmpty()) {
-                    Optional<EntidadesSalud> entOpt = entidadesSaludRepository.findByNombreContainingIgnoreCase(dato.getEntidad()).stream().findFirst();
-                    if (entOpt.isPresent()) {
-                        cirugia.setEntidadSalud(entOpt.get());
-                    }
-                }
-
                 cirugiaRepository.save(cirugia);
                 exitosos++;
 
@@ -248,7 +178,7 @@ public class CirugiaServiceImpl implements CirugiaService {
         }
 
         mensajes.add(0, "Se procesaron " + datosDinamica.size() + " registros");
-        mensajes.add(1, "Nuevos guardados: " + exitosos + " | Omitidos (ya existen): " + omitidos + " | Errores: " + errores);
+        mensajes.add(1, "Nuevos guardados: " + exitosos + " | Errores: " + errores);
         response.setTotalRegistros(datosDinamica.size());
         response.setExitosos(exitosos);
         response.setErrores(errores);

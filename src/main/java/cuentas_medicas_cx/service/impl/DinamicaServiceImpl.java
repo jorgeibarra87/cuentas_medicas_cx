@@ -178,17 +178,10 @@ public class DinamicaServiceImpl implements DinamicaService {
         log.info("Consultando cirugías desde Dinámica entre {} y {}", fechaInicio, fechaFin);
         List<DinamicaCirugiaDTO> resultados = new ArrayList<>();
         
-        // Convertir formato dd/mm/yyyy a formato SQL Server
-        String[] partsInicio = fechaInicio.split("/");
-        String[] partsFin = fechaFin.split("/");
-        
-        String fechaInicioSQL = partsInicio[2] + "-" + partsInicio[1] + "-" + partsInicio[0];
-        String fechaFinSQL = partsFin[2] + "-" + partsFin[1] + "-" + partsFin[0];
-        
-        String sql = QUERY_ENDOSCOPIA_1.replace("?1", "'" + fechaInicioSQL + "'").replace("?2", "'" + fechaFinSQL + "'") + " UNION ALL " 
-                   + QUERY_ENDOSCOPIA_2.replace("?1", "'" + fechaInicioSQL + "'").replace("?2", "'" + fechaFinSQL + "'") + " UNION ALL " 
-                   + QUERY_CIRUGIA.replace("?1", "'" + fechaInicioSQL + "'").replace("?2", "'" + fechaFinSQL + "'") + " UNION ALL " 
-                   + QUERY_RESCATE.replace("?1", "'" + fechaInicioSQL + "'").replace("?2", "'" + fechaFinSQL + "'")
+        String sql = QUERY_ENDOSCOPIA_1.replace("?1", "'" + fechaInicio + "'").replace("?2", "'" + fechaFin + "'") + " UNION ALL " 
+                   + QUERY_ENDOSCOPIA_2.replace("?1", "'" + fechaInicio + "'").replace("?2", "'" + fechaFin + "'") + " UNION ALL " 
+                   + QUERY_CIRUGIA.replace("?1", "'" + fechaInicio + "'").replace("?2", "'" + fechaFin + "'") + " UNION ALL " 
+                   + QUERY_RESCATE.replace("?1", "'" + fechaInicio + "'").replace("?2", "'" + fechaFin + "'")
                    + " ORDER BY Ingreso, Fecha_Cargue";
         
         try (Connection conn = getExternalDataSource().getConnection();

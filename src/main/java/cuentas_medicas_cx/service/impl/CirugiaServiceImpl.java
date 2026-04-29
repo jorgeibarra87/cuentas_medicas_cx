@@ -141,6 +141,7 @@ public class CirugiaServiceImpl implements CirugiaService {
         List<String> mensajes = new ArrayList<>();
         int exitosos = 0;
         int errores = 0;
+        int omitidos = 0;
 
         List<DinamicaCirugiaDTO> datosDinamica = dinamicaService.obtenerCirugiasPorFechas(fechaInicio, fechaFin);
         
@@ -153,8 +154,33 @@ public class CirugiaServiceImpl implements CirugiaService {
             return response;
         }
 
+        List<Cirugia> cirugiasExistentes = cirugiaRepository.findAll();
+        Set<String> clavesExistentes = new HashSet<>();
+        for (Cirugia c : cirugiasExistentes) {
+            String clave = nvl(c.getTipoProcedimiento()) + "|" + 
+                        nvl(c.getProcedCod()) + "|" + 
+                        nvl(c.getIngreso() != null ? c.getIngreso().getNumeroIngreso() : "") + "|" +
+                        nvl(c.getPaciente() != null ? c.getPaciente().getNumeroIdentificacion() : "") + "|" +
+                        normalizarFecha(c.getFechaCargue()) + "|" +
+                        nvl(c.getHoraCargue());
+            clavesExistentes.add(clave);
+        }
+
         for (DinamicaCirugiaDTO dato : datosDinamica) {
             try {
+                String clave = nvl(dato.getTipo()) + "|" + 
+                            nvl(dato.getProcedCod()) + "|" + 
+                            nvl(dato.getIngreso()) + "|" +
+                            nvl(dato.getPaciente()) + "|" +
+                            normalizarFecha(dato.getFechaCargue()) + "|" +
+                            nvl(dato.getHoraCargue());
+
+                if (clavesExistentes.contains(clave)) {
+                    omitidos++;
+                    continue;
+                }
+                clavesExistentes.add(clave);
+
                 Cirugia cirugia = new Cirugia();
                 cirugia.setTipoProcedimiento(dato.getTipo());
                 cirugia.setProcedCod(dato.getProcedCod());
@@ -177,7 +203,7 @@ public class CirugiaServiceImpl implements CirugiaService {
         }
 
         mensajes.add(0, "Se procesaron " + datosDinamica.size() + " registros");
-        mensajes.add(1, "Guardados: " + exitosos + " | Errores: " + errores);
+        mensajes.add(1, "Guardados: " + exitosos + " | Omitidos: " + omitidos + " | Errores: " + errores);
         response.setTotalRegistros(datosDinamica.size());
         response.setExitosos(exitosos);
         response.setErrores(errores);

@@ -64,10 +64,10 @@ public class CirugiaServiceImpl implements CirugiaService {
                 cirugia.setGqx(dato.getGqx());
                 cirugia.setIntervencion(dato.getIntervencion());
                 cirugia.setRegimen(dato.getRegimen());
-                cirugia.setFechaSolicitud(dato.getFechaSolicitud());
-                cirugia.setFechaCargue(dato.getFechaCargue());
+                cirugia.setFechaSolicitud(normalizarFecha(dato.getFechaSolicitud()));
+                cirugia.setFechaCargue(normalizarFecha(dato.getFechaCargue()));
                 cirugia.setHoraCargue(dato.getHoraCargue());
-                cirugia.setFechaResultado(dato.getFechaResultado());
+                cirugia.setFechaResultado(normalizarFecha(dato.getFechaResultado()));
                 cirugia.setEstadoAuditoria("PENDIENTE");
 
                 if (dato.getPaciente() != null && !dato.getPaciente().isEmpty()) {

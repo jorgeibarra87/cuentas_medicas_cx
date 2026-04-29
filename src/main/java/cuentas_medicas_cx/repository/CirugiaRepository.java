@@ -33,4 +33,17 @@ public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
     List<Cirugia> findByRangoFechasCargue(@Param("fechaInicio") String fechaInicio, @Param("fechaFin") String fechaFin);
 
     List<Cirugia> findByFechaCargueBetween(String fechaInicio, String fechaFin);
+
+    @Query("SELECT COUNT(c) > 0 FROM Cirugia c WHERE c.tipoProcedimiento = :tipo " +
+           "AND c.procedCod = :procedCod AND c.ingreso.numeroIngreso = :ingreso " +
+           "AND c.paciente.numeroIdentificacion = :paciente AND c.fechaCargue = :fechaCargue " +
+           "AND c.horaCargue = :horaCargue")
+    boolean existsByClaveUnica(
+            @Param("tipo") String tipo,
+            @Param("procedCod") String procedCod,
+            @Param("ingreso") String ingreso,
+            @Param("paciente") String paciente,
+            @Param("fechaCargue") String fechaCargue,
+            @Param("horaCargue") String horaCargue
+    );
 }

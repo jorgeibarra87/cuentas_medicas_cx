@@ -160,11 +160,14 @@ public class CirugiaServiceImpl implements CirugiaService {
             try {
                 String fechaCargue = normalizarFecha(dato.getFechaCargue());
                 String horaCargue = nvl(dato.getHoraCargue());
+                String tipo = nvl(dato.getTipo());
+                String procedCod = nvl(dato.getProcedCod());
                 
-                boolean existe = cirugiaRepository.existsByClaveUnica(nvl(dato.getTipo()), nvl(dato.getProcedCod()), fechaCargue, horaCargue);
+                boolean existe = cirugiaRepository.existsByClaveUnica(tipo, procedCod, fechaCargue, horaCargue);
                 
                 if (existe) {
                     omitidos++;
+                    log.debug("Ya existe: tipo={} proced={} fecha={} hora={}", tipo, procedCod, fechaCargue, horaCargue);
                     continue;
                 }
 

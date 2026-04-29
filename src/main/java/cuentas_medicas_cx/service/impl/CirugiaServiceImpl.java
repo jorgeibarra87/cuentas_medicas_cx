@@ -463,15 +463,37 @@ public class CirugiaServiceImpl implements CirugiaService {
     private String normalizarFecha(String fecha) {
         if (fecha == null || fecha.isEmpty()) return "";
         
-        fecha = fecha.trim().replace("/", "-");
+        fecha = fecha.trim();
+        
+        if (fecha.matches("\\d{4}-\\d{2}-\\d{2}.*")) {
+            return fecha.substring(0, 10);
+        }
+        
+        fecha = fecha.replace("/", "-");
         
         try {
             if (fecha.contains("-")) {
                 String[] parts = fecha.split("-");
                 if (parts.length == 3) {
-                    String dia = parts[0].trim();
-                    String mes = parts[1].trim().toLowerCase();
-                    String anio = parts[2].trim();
+                    String p1 = parts[0].trim();
+                    String p2 = parts[1].trim().toLowerCase();
+                    String p3 = parts[2].trim().split("\\s")[0].trim();
+                    
+                    String dia, mes, anio;
+                    
+                    if (p1.length() == 4) {
+                        anio = p1;
+                        mes = p2;
+                        dia = p3;
+                    } else if (p3.length() == 4) {
+                        dia = p1;
+                        mes = p2;
+                        anio = p3;
+                    } else {
+                        dia = p1;
+                        mes = p2;
+                        anio = p3;
+                    }
                     
                     if (anio.length() == 2) {
                         anio = "20" + anio;
@@ -479,7 +501,7 @@ public class CirugiaServiceImpl implements CirugiaService {
                     
                     int mesNum;
                     switch (mes) {
-                        case "ene": case "jan": case "01": case "1": mesNum = 1; break;
+                        case "ene": case "jan": mesNum = 1; break;
                         case "feb": case "02": case "2": mesNum = 2; break;
                         case "mar": case "03": case "3": mesNum = 3; break;
                         case "abr": case "apr": case "04": case "4": mesNum = 4; break;

@@ -157,13 +157,13 @@ public class CirugiaServiceImpl implements CirugiaService {
         List<Cirugia> cirugiasExistentes = cirugiaRepository.findAll();
         Set<String> clavesExistentes = new HashSet<>();
         for (Cirugia c : cirugiasExistentes) {
-            String clave = c.getTipoProcedimiento() + "|" + c.getProcedCod() + "|" + c.getGqx();
+            String clave = nvl(c.getTipoProcedimiento()) + "|" + nvl(c.getProcedCod()) + "|" + nvl(c.getGqx());
             clavesExistentes.add(clave);
         }
 
         for (DinamicaCirugiaDTO dato : datosDinamica) {
             try {
-                String clave = dato.getTipo() + "|" + dato.getProcedCod() + "|" + dato.getGrupoqxCod();
+                String clave = nvl(dato.getTipo()) + "|" + nvl(dato.getProcedCod()) + "|" + nvl(dato.getGrupoqxCod());
 
                 if (clavesExistentes.contains(clave)) {
                     omitidos++;
@@ -488,5 +488,9 @@ public class CirugiaServiceImpl implements CirugiaService {
             return fecha;
         }
         return fecha;
+    }
+
+    private String nvl(String valor) {
+        return valor == null ? "" : valor.trim();
     }
 }

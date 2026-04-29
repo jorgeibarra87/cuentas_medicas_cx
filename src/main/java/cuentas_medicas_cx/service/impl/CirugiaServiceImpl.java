@@ -154,18 +154,16 @@ public class CirugiaServiceImpl implements CirugiaService {
             return response;
         }
 
+        List<Cirugia> cirugiasExistentes = cirugiaRepository.findAll();
         Set<String> clavesExistentes = new HashSet<>();
-        String fechaIniNorm = normalizarFecha(fechaInicio);
-        String fechaFinNorm = normalizarFecha(fechaFin);
-        List<Cirugia> cirugiasExistentes = cirugiaRepository.findByFechaCargueBetween(fechaIniNorm, fechaFinNorm);
         for (Cirugia c : cirugiasExistentes) {
-            String clave = c.getTipoProcedimiento() + "|" + c.getProcedCod() + "|" + c.getGqx() + "|" + normalizarFecha(c.getFechaCargue());
+            String clave = c.getTipoProcedimiento() + "|" + c.getProcedCod() + "|" + c.getGqx();
             clavesExistentes.add(clave);
         }
 
         for (DinamicaCirugiaDTO dato : datosDinamica) {
             try {
-                String clave = dato.getTipo() + "|" + dato.getProcedCod() + "|" + dato.getGrupoqxCod() + "|" + normalizarFecha(dato.getFechaCargue());
+                String clave = dato.getTipo() + "|" + dato.getProcedCod() + "|" + dato.getGrupoqxCod();
 
                 if (clavesExistentes.contains(clave)) {
                     omitidos++;

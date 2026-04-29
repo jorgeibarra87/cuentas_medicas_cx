@@ -156,18 +156,8 @@ public class CirugiaServiceImpl implements CirugiaService {
             return response;
         }
 
-        List<Cirugia> cirugiasExistentes = cirugiaRepository.findAll();
-        Set<String> clavesExistentes = new HashSet<>();
-        for (Cirugia c : cirugiasExistentes) {
-            String clave = nvl(c.getTipoProcedimiento()) + "|" + 
-                        nvl(c.getProcedCod()) + "|" + 
-                        nvl(c.getIngreso() != null ? c.getIngreso().getNumeroIngreso() : "") + "|" +
-                        nvl(c.getPaciente() != null ? c.getPaciente().getNumeroIdentificacion() : "") + "|" +
-                        normalizarFecha(c.getFechaCargue()) + "|" +
-                        nvl(c.getHoraCargue());
-            clavesExistentes.add(clave);
-        }
-
+        Set<String> clavesBatch = new HashSet<>();
+        
         for (DinamicaCirugiaDTO dato : datosDinamica) {
             try {
                 String clave = nvl(dato.getTipo()) + "|" + 
@@ -177,12 +167,12 @@ public class CirugiaServiceImpl implements CirugiaService {
                             normalizarFecha(dato.getFechaCargue()) + "|" +
                             nvl(dato.getHoraCargue());
 
-                if (clavesExistentes.contains(clave)) {
-                    log.warn("DUPLICADO: clave={} ingreso={} paciente={} proced={}", clave, dato.getIngreso(), dato.getPaciente(), dato.getProcedCod());
+                if (clavesBatch.contains(clave)) {
+                    log.warn("DUPLICADO en batch: clave={}", clave);
                     omitidos++;
                     continue;
                 }
-                clavesExistentes.add(clave);
+                clavesBatch.add(clave);
 
                 Cirugia cirugia = new Cirugia();
                 cirugia.setTipoProcedimiento(dato.getTipo());

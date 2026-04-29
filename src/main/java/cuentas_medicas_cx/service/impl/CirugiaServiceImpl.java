@@ -158,14 +158,10 @@ public class CirugiaServiceImpl implements CirugiaService {
 
         for (DinamicaCirugiaDTO dato : datosDinamica) {
             try {
-                String tipo = nvl(dato.getTipo());
-                String procedCod = nvl(dato.getProcedCod());
-                String ingreso = nvl(dato.getIngreso());
-                String paciente = nvl(dato.getPaciente());
                 String fechaCargue = normalizarFecha(dato.getFechaCargue());
                 String horaCargue = nvl(dato.getHoraCargue());
                 
-                boolean existe = cirugiaRepository.existsByClaveUnica(tipo, procedCod, ingreso, paciente, fechaCargue, horaCargue);
+                boolean existe = cirugiaRepository.existsByClaveUnica(nvl(dato.getTipo()), nvl(dato.getProcedCod()), fechaCargue, horaCargue);
                 
                 if (existe) {
                     omitidos++;

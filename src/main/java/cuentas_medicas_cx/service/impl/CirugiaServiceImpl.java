@@ -11,6 +11,7 @@ import cuentas_medicas_cx.service.CirugiaService;
 import cuentas_medicas_cx.service.DinamicaService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -176,6 +178,7 @@ public class CirugiaServiceImpl implements CirugiaService {
                             nvl(dato.getHoraCargue());
 
                 if (clavesExistentes.contains(clave)) {
+                    log.warn("DUPLICADO: clave={} ingreso={} paciente={} proced={}", clave, dato.getIngreso(), dato.getPaciente(), dato.getProcedCod());
                     omitidos++;
                     continue;
                 }

@@ -167,7 +167,7 @@ public class CirugiaServiceImpl implements CirugiaService {
                 
                 if (existe) {
                     omitidos++;
-                    log.debug("Ya existe: tipo={} proced={} fecha={} hora={}", tipo, procedCod, fechaCargue, horaCargue);
+                    log.warn("DUPLICADO: tipo={} procedCod={} fechaCargue={} horaCargue={}", tipo, procedCod, fechaCargue, horaCargue);
                     continue;
                 }
 

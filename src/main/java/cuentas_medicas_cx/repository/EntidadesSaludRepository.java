@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface EntidadesSaludRepository extends JpaRepository<EntidadesSalud, Long> {
     Optional<EntidadesSalud> findByNombreContainingIgnoreCase(String nombre);
     List<EntidadesSalud> findByEstado(Boolean estado);
+    List<EntidadesSalud> findAllByNombreContainingIgnoreCase(String nombre);
 }

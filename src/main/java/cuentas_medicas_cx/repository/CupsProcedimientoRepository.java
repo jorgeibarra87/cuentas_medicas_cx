@@ -11,4 +11,5 @@ public interface CupsProcedimientoRepository extends JpaRepository<CupsProcedimi
     Optional<CupsProcedimiento> findByDescripcionContainingIgnoreCase(String descripcion);
     List<CupsProcedimiento> findByGrupoCups(String grupoCups);
     List<CupsProcedimiento> findByEstado(Boolean estado);
+    List<CupsProcedimiento> findAllByCodigo(String codigo);
 }

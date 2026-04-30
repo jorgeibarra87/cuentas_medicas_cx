@@ -71,45 +71,120 @@ public class CirugiaServiceImpl implements CirugiaService {
                 cirugia.setEstadoAuditoria("PENDIENTE");
 
                 if (dato.getPaciente() != null && !dato.getPaciente().isEmpty()) {
-                    Optional<Paciente> pacienteOpt = pacienteRepository.findByNumeroIdentificacion(dato.getPaciente());
-                    if (pacienteOpt.isPresent()) {
-                        cirugia.setPaciente(pacienteOpt.get());
-                    }
+                    try {
+                        List<Paciente> lista = pacienteRepository.findAllByNumeroIdentificacion(dato.getPaciente());
+                        if (lista.isEmpty()) {
+                            try {
+                                Paciente p = new Paciente();
+                                p.setNumeroIdentificacion(dato.getPaciente());
+                                p.setNombre(dato.getNombres() != null ? dato.getNombres() : "");
+                                p = pacienteRepository.saveAndFlush(p);
+                                cirugia.setPaciente(p);
+                            } catch (Exception e) {
+                                lista = pacienteRepository.findAllByNumeroIdentificacion(dato.getPaciente());
+                                if (!lista.isEmpty()) cirugia.setPaciente(lista.get(0));
+                            }
+                        } else {
+                            cirugia.setPaciente(lista.get(0));
+                        }
+                    } catch (Exception ex) { /* ignore */ }
                 }
 
                 if (dato.getIngreso() != null && !dato.getIngreso().isEmpty()) {
-                    Optional<Ingreso> ingresoOpt = ingresoRepository.findByNumeroIngreso(dato.getIngreso());
-                    if (ingresoOpt.isPresent()) {
-                        cirugia.setIngreso(ingresoOpt.get());
-                    }
+                    try {
+                        List<Ingreso> lista = ingresoRepository.findAllByNumeroIngreso(dato.getIngreso());
+                        if (lista.isEmpty() && cirugia.getPaciente() != null) {
+                            try {
+                                Ingreso i = new Ingreso();
+                                i.setNumeroIngreso(dato.getIngreso());
+                                i.setPaciente(cirugia.getPaciente());
+                                i = ingresoRepository.saveAndFlush(i);
+                                cirugia.setIngreso(i);
+                            } catch (Exception e) {
+                                lista = ingresoRepository.findAllByNumeroIngreso(dato.getIngreso());
+                                if (!lista.isEmpty()) cirugia.setIngreso(lista.get(0));
+                            }
+                        } else if (!lista.isEmpty()) {
+                            cirugia.setIngreso(lista.get(0));
+                        }
+                    } catch (Exception ex) { /* ignore */ }
                 }
 
                 if (dato.getCups() != null && !dato.getCups().isEmpty()) {
-                    Optional<CupsProcedimiento> cupsOpt = cupsProcedimientoRepository.findByCodigo(dato.getCups());
-                    if (cupsOpt.isPresent()) {
-                        cirugia.setCups(cupsOpt.get());
-                    }
+                    try {
+                        List<CupsProcedimiento> lista = cupsProcedimientoRepository.findAllByCodigo(dato.getCups());
+                        if (lista.isEmpty()) {
+                            try {
+                                CupsProcedimiento c = new CupsProcedimiento();
+                                c.setCodigo(dato.getCups());
+                                c.setDescripcion(dato.getIntervencion() != null ? dato.getIntervencion() : "");
+                                c = cupsProcedimientoRepository.saveAndFlush(c);
+                                cirugia.setCups(c);
+                            } catch (Exception e) {
+                                lista = cupsProcedimientoRepository.findAllByCodigo(dato.getCups());
+                                if (!lista.isEmpty()) cirugia.setCups(lista.get(0));
+                            }
+                        } else {
+                            cirugia.setCups(lista.get(0));
+                        }
+                    } catch (Exception ex) { /* ignore */ }
                 }
 
                 if (dato.getEspecialidad() != null && !dato.getEspecialidad().isEmpty()) {
-                    Optional<Especialidad> espOpt = especialidadRepository.findByNombreContainingIgnoreCase(dato.getEspecialidad()).stream().findFirst();
-                    if (espOpt.isPresent()) {
-                        cirugia.setEspecialidad(espOpt.get());
-                    }
+                    try {
+                        List<Especialidad> lista = especialidadRepository.findAllByNombreContainingIgnoreCase(dato.getEspecialidad());
+                        if (lista.isEmpty()) {
+                            try {
+                                Especialidad e = new Especialidad();
+                                e.setNombre(dato.getEspecialidad());
+                                e = especialidadRepository.saveAndFlush(e);
+                                cirugia.setEspecialidad(e);
+                            } catch (Exception ex) {
+                                lista = especialidadRepository.findAllByNombreContainingIgnoreCase(dato.getEspecialidad());
+                                if (!lista.isEmpty()) cirugia.setEspecialidad(lista.get(0));
+                            }
+                        } else {
+                            cirugia.setEspecialidad(lista.get(0));
+                        }
+                    } catch (Exception ex) { /* ignore */ }
                 }
 
                 if (dato.getMedico() != null && !dato.getMedico().isEmpty()) {
-                    Optional<Medico> medicoOpt = medicoRepository.findFirstByNombreCompletoContainingIgnoreCase(dato.getMedico());
-                    if (medicoOpt.isPresent()) {
-                        cirugia.setMedico(medicoOpt.get());
-                    }
+                    try {
+                        List<Medico> lista = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(dato.getMedico());
+                        if (lista.isEmpty()) {
+                            try {
+                                Medico m = new Medico();
+                                m.setNombreCompleto(dato.getMedico());
+                                m = medicoRepository.saveAndFlush(m);
+                                cirugia.setMedico(m);
+                            } catch (Exception ex) {
+                                lista = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(dato.getMedico());
+                                if (!lista.isEmpty()) cirugia.setMedico(lista.get(0));
+                            }
+                        } else {
+                            cirugia.setMedico(lista.get(0));
+                        }
+                    } catch (Exception ex) { /* ignore */ }
                 }
 
                 if (dato.getEntidad() != null && !dato.getEntidad().isEmpty()) {
-                    Optional<EntidadesSalud> entOpt = entidadesSaludRepository.findByNombreContainingIgnoreCase(dato.getEntidad()).stream().findFirst();
-                    if (entOpt.isPresent()) {
-                        cirugia.setEntidadSalud(entOpt.get());
-                    }
+                    try {
+                        List<EntidadesSalud> lista = entidadesSaludRepository.findAllByNombreContainingIgnoreCase(dato.getEntidad());
+                        if (lista.isEmpty()) {
+                            try {
+                                EntidadesSalud e = new EntidadesSalud();
+                                e.setNombre(dato.getEntidad().trim());
+                                e = entidadesSaludRepository.saveAndFlush(e);
+                                cirugia.setEntidadSalud(e);
+                            } catch (Exception ex) {
+                                lista = entidadesSaludRepository.findAllByNombreContainingIgnoreCase(dato.getEntidad());
+                                if (!lista.isEmpty()) cirugia.setEntidadSalud(lista.get(0));
+                            }
+                        } else {
+                            cirugia.setEntidadSalud(lista.get(0));
+                        }
+                    } catch (Exception ex) { /* ignore */ }
                 }
 
                 cirugiaRepository.save(cirugia);

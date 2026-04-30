@@ -12,4 +12,5 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
     List<Medico> findByEspecialidadId(Long especialidadId);
     List<Medico> findByEstado(Boolean estado);
     Optional<Medico> findFirstByNombreCompletoContainingIgnoreCase(String nombre);
+    List<Medico> findAllByNombreCompletoContainingIgnoreCase(String nombre);
 }

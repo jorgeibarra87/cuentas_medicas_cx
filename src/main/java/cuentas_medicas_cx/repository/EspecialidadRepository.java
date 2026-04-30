@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface EspecialidadRepository extends JpaRepository<Especialidad, Long> {
     Optional<Especialidad> findByNombreContainingIgnoreCase(String nombre);
     List<Especialidad> findByEstado(Boolean estado);
+    List<Especialidad> findAllByNombreContainingIgnoreCase(String nombre);
 }

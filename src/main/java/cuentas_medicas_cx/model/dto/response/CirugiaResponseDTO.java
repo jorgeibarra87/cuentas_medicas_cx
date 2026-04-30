@@ -34,4 +34,8 @@ public class CirugiaResponseDTO {
     private String revSupervision;
     private String observacionAuditoria;
     private String estadoAuditoria;
+    private String regimen;
+    private String fechaCargue;
+    private String horaCargue;
+    private String fechaResultado;
 }

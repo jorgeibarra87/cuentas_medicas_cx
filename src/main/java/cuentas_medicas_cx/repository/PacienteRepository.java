@@ -12,4 +12,5 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
     List<Paciente> findByTipoIdentificacion(String tipoIdentificacion);
     List<Paciente> findByEstado(Boolean estado);
     Optional<Paciente> findFirstByNumeroIdentificacionContaining(String numeroIdentificacion);
+    List<Paciente> findAllByNumeroIdentificacion(String numeroIdentificacion);
 }

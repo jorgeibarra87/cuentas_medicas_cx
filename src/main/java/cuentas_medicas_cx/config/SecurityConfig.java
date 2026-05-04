@@ -54,11 +54,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> {
                             authorizeRequests
+                                    .requestMatchers("/cirugias/importar/bd").permitAll()
                                     .requestMatchers("/api/**", "/cirugias/**", "/ingresos/**", "/pacientes/**", "/medicos/**",
                                             "/entidades/**", "/especialidades/**", "/cups/**", "/swagger-ui/**",
                                             "/v3/api-docs/**", "/swagger-ui.html",
                                             "/api/v1/auth/**", "/api-auth-service/**").permitAll();
-                            authorizeRequests.anyRequest().authenticated();
+                            authorizeRequests.anyRequest().permitAll();
                         }
                 )
                 .build();

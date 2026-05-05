@@ -1,6 +1,8 @@
 package cuentas_medicas_cx.repository;
 
 import cuentas_medicas_cx.model.entity.Cirugia;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,11 +37,16 @@ public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
     List<Cirugia> findByFechaCargueBetween(String fechaInicio, String fechaFin);
 
     @Query("SELECT COUNT(c) > 0 FROM Cirugia c WHERE c.tipoProcedimiento = :tipo " +
-           "AND c.procedCod = :procedCod AND c.fechaCargue = :fechaCargue AND c.horaCargue = :horaCargue")
+           "AND c.procedCod = :procedCod AND c.fechaCargue = :fechaCargue AND c.horaCargue = :horaCargue AND c.cups.codigo = :cups")
     boolean existsByClaveUnica(
             @Param("tipo") String tipo,
             @Param("procedCod") String procedCod,
             @Param("fechaCargue") String fechaCargue,
-            @Param("horaCargue") String horaCargue
+            @Param("horaCargue") String horaCargue,
+            @Param("cups") String cups
     );
+
+    Page<Cirugia> findByFechaCargueBetween(String fechaInicio, String fechaFin, Pageable pageable);
+
+    Page<Cirugia> findAllByOrderByFechaCargueDesc(Pageable pageable);
 }

@@ -1,9 +1,11 @@
 package cuentas_medicas_cx.service.impl;
 
 import cuentas_medicas_cx.model.dto.request.CirugiaRequestDTO;
+import cuentas_medicas_cx.model.dto.request.CirugiaUpdateRequestDTO;
 import cuentas_medicas_cx.model.dto.request.ImportarCirugiasRequestDTO;
 import cuentas_medicas_cx.model.dto.response.CirugiaResponseDTO;
 import cuentas_medicas_cx.model.dto.response.ImportarCirugiasResponseDTO;
+import cuentas_medicas_cx.model.dto.response.PaginadoDTO;
 import cuentas_medicas_cx.model.dto.external.DinamicaCirugiaDTO;
 import cuentas_medicas_cx.model.entity.*;
 import cuentas_medicas_cx.repository.*;
@@ -13,6 +15,9 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -237,8 +242,9 @@ public class CirugiaServiceImpl implements CirugiaService {
                 String horaCargue = nvl(dato.getHoraCargue());
                 String tipo = nvl(dato.getTipo());
                 String procedCod = nvl(dato.getProcedCod());
+                String cups = nvl(dato.getCups());
                 
-                boolean existe = cirugiaRepository.existsByClaveUnica(tipo, procedCod, fechaCargue, horaCargue);
+                boolean existe = cirugiaRepository.existsByClaveUnica(tipo, procedCod, fechaCargue, horaCargue, cups);
                 
                 if (existe) {
                     omitidos++;
@@ -253,8 +259,8 @@ public class CirugiaServiceImpl implements CirugiaService {
                 cirugia.setIntervencion(dato.getIntervencion());
                 cirugia.setRegimen(dato.getRegimen());
                 cirugia.setFechaSolicitud(normalizarFecha(dato.getFechaSolicitud()));
-                cirugia.setFechaCargue(normalizarFecha(dato.getFechaCargue()));
-                cirugia.setHoraCargue(dato.getHoraCargue());
+                cirugia.setFechaCargue(fechaCargue);
+                cirugia.setHoraCargue(horaCargue);
                 cirugia.setFechaResultado(normalizarFecha(dato.getFechaResultado()));
                 cirugia.setEstadoAuditoria("PENDIENTE");
 
@@ -472,6 +478,26 @@ public class CirugiaServiceImpl implements CirugiaService {
 
     @Override
     @Transactional(readOnly = true)
+    public PaginadoDTO<CirugiaResponseDTO> listarTodosPageable(String fechaInicio, String fechaFin, int page, int size) {
+        log.info("📋 Listar pageable - fechaInicio: {}, fechaFin: {}, page: {}, size: {}", fechaInicio, fechaFin, page, size);
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "fechaCargue"));
+        Page<CirugiaResponseDTO> resultPage;
+        if (fechaInicio != null && !fechaInicio.isEmpty() && fechaFin != null && !fechaFin.isEmpty()) {
+            log.info("🔍 Buscando por rango de fechas: {} a {}", fechaInicio, fechaFin);
+            Page<Cirugia> cirugiasPage = cirugiaRepository.findByFechaCargueBetween(fechaInicio, fechaFin, pageRequest);
+            resultPage = cirugiasPage.map(this::mapToResponse);
+            log.info("✅ Encontradas {} cirugías en rango", cirugiasPage.getTotalElements());
+        } else {
+            log.info("🔍 Buscando todas las cirugías (sin filtro de fecha)");
+            Page<Cirugia> cirugiasPage = cirugiaRepository.findAll(pageRequest);
+            resultPage = cirugiasPage.map(this::mapToResponse);
+            log.info("✅ Total cirugías en BD: {}", cirugiasPage.getTotalElements());
+        }
+        return new PaginadoDTO<>(resultPage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<CirugiaResponseDTO> listarPorIngreso(Long ingresoId) {
         return cirugiaRepository.findByIngresoId(ingresoId).stream()
                 .map(this::mapToResponse)
@@ -479,69 +505,109 @@ public class CirugiaServiceImpl implements CirugiaService {
     }
 
     @Override
-    public CirugiaResponseDTO actualizar(Long id, CirugiaRequestDTO request) {
+    @Transactional
+    public CirugiaResponseDTO actualizar(Long id, CirugiaUpdateRequestDTO request) {
         Cirugia entity = cirugiaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cirugia no encontrada con id: " + id));
 
-        entity.setTipoProcedimiento(request.getTipoProcedimiento());
-
-        if (request.getPacienteId() != null) {
-            Paciente paciente = pacienteRepository.findById(request.getPacienteId())
-                    .orElseThrow(() -> new EntityNotFoundException("Paciente no encontrado con id: " + request.getPacienteId()));
-            entity.setPaciente(paciente);
+        if (request.getPacienteNumeroIdentificacion() != null && !request.getPacienteNumeroIdentificacion().isEmpty()) {
+            List<Paciente> listaPac = pacienteRepository.findAllByNumeroIdentificacion(request.getPacienteNumeroIdentificacion());
+            if (!listaPac.isEmpty()) entity.setPaciente(listaPac.get(0));
         }
 
-        if (request.getIngresoId() != null) {
-            Ingreso ingreso = ingresoRepository.findById(request.getIngresoId())
-                    .orElseThrow(() -> new EntityNotFoundException("Ingreso no encontrado con id: " + request.getIngresoId()));
-            entity.setIngreso(ingreso);
+        if (request.getIngresoNumero() != null && !request.getIngresoNumero().isEmpty() && entity.getPaciente() != null) {
+            List<Ingreso> listaIng = ingresoRepository.findAllByNumeroIngreso(request.getIngresoNumero());
+            if (!listaIng.isEmpty()) entity.setIngreso(listaIng.get(0));
         }
 
-        if (request.getCupsId() != null) {
-            CupsProcedimiento cups = cupsProcedimientoRepository.findById(request.getCupsId())
-                    .orElseThrow(() -> new EntityNotFoundException("Procedimiento CUPS no encontrado con id: " + request.getCupsId()));
-            entity.setCups(cups);
+        if (request.getCupsCodigo() != null && !request.getCupsCodigo().isEmpty()) {
+            List<CupsProcedimiento> listaCups = cupsProcedimientoRepository.findAllByCodigo(request.getCupsCodigo());
+            if (!listaCups.isEmpty()) entity.setCups(listaCups.get(0));
         }
 
-        entity.setProcedCod(request.getProcedCod());
-        entity.setGqx(request.getGqx());
-        entity.setIntervencion(request.getIntervencion());
-
-        if (request.getEspecialidadId() != null) {
-            Especialidad especialidad = especialidadRepository.findById(request.getEspecialidadId())
-                    .orElseThrow(() -> new EntityNotFoundException("Especialidad no encontrada con id: " + request.getEspecialidadId()));
-            entity.setEspecialidad(especialidad);
+        if (request.getEspecialidadNombre() != null && !request.getEspecialidadNombre().isEmpty()) {
+            List<Especialidad> listaEsp = especialidadRepository.findAllByNombreContainingIgnoreCase(request.getEspecialidadNombre());
+            if (listaEsp.isEmpty()) {
+                try {
+                    Especialidad e = new Especialidad();
+                    e.setNombre(request.getEspecialidadNombre());
+                    e = especialidadRepository.save(e);
+                    entity.setEspecialidad(e);
+                } catch (Exception ex) {
+                    listaEsp = especialidadRepository.findAllByNombreContainingIgnoreCase(request.getEspecialidadNombre());
+                    if (!listaEsp.isEmpty()) entity.setEspecialidad(listaEsp.get(0));
+                }
+            } else {
+                entity.setEspecialidad(listaEsp.get(0));
+            }
         }
 
-        if (request.getMedicoId() != null) {
-            Medico medico = medicoRepository.findById(request.getMedicoId())
-                    .orElseThrow(() -> new EntityNotFoundException("Medico no encontrado con id: " + request.getMedicoId()));
-            entity.setMedico(medico);
+        if (request.getMedicoNombre() != null && !request.getMedicoNombre().isEmpty()) {
+            List<Medico> listaMed = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getMedicoNombre());
+            if (listaMed.isEmpty()) {
+                try {
+                    Medico m = new Medico();
+                    m.setNombreCompleto(request.getMedicoNombre());
+                    m = medicoRepository.save(m);
+                    entity.setMedico(m);
+                } catch (Exception ex) {
+                    listaMed = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getMedicoNombre());
+                    if (!listaMed.isEmpty()) entity.setMedico(listaMed.get(0));
+                }
+            } else {
+                entity.setMedico(listaMed.get(0));
+            }
         }
 
-        if (request.getAnestesiologoId() != null) {
-            Medico anestesiologo = medicoRepository.findById(request.getAnestesiologoId())
-                    .orElseThrow(() -> new EntityNotFoundException("Anestesiologo no encontrado con id: " + request.getAnestesiologoId()));
-            entity.setAnestesiologo(anestesiologo);
+        if (request.getAnestesiologoNombre() != null && !request.getAnestesiologoNombre().isEmpty()) {
+            List<Medico> listaAnest = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getAnestesiologoNombre());
+            if (listaAnest.isEmpty()) {
+                try {
+                    Medico m = new Medico();
+                    m.setNombreCompleto(request.getAnestesiologoNombre());
+                    m = medicoRepository.save(m);
+                    entity.setAnestesiologo(m);
+                } catch (Exception ex) {
+                    listaAnest = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getAnestesiologoNombre());
+                    if (!listaAnest.isEmpty()) entity.setAnestesiologo(listaAnest.get(0));
+                }
+            } else {
+                entity.setAnestesiologo(listaAnest.get(0));
+            }
         }
 
-        if (request.getEntidadSaludId() != null) {
-            EntidadesSalud entidadSalud = entidadesSaludRepository.findById(request.getEntidadSaludId())
-                    .orElseThrow(() -> new EntityNotFoundException("Entidad de salud no encontrada con id: " + request.getEntidadSaludId()));
-            entity.setEntidadSalud(entidadSalud);
+        if (request.getEntidadSaludNombre() != null && !request.getEntidadSaludNombre().isEmpty()) {
+            List<EntidadesSalud> listaEnt = entidadesSaludRepository.findAllByNombreContainingIgnoreCase(request.getEntidadSaludNombre());
+            if (listaEnt.isEmpty()) {
+                try {
+                    EntidadesSalud e = new EntidadesSalud();
+                    e.setNombre(request.getEntidadSaludNombre().trim());
+                    e = entidadesSaludRepository.save(e);
+                    entity.setEntidadSalud(e);
+                } catch (Exception ex) {
+                    listaEnt = entidadesSaludRepository.findAllByNombreContainingIgnoreCase(request.getEntidadSaludNombre());
+                    if (!listaEnt.isEmpty()) entity.setEntidadSalud(listaEnt.get(0));
+                }
+            } else {
+                entity.setEntidadSalud(listaEnt.get(0));
+            }
         }
 
-        entity.setAyudante1(request.getAyudante1());
-        entity.setAyudante2(request.getAyudante2());
-        entity.setLiquidacion(request.getLiquidacion());
-        entity.setAuditoriaPorcentaje(request.getAuditoriaPorcentaje());
-        entity.setNovedad(request.getNovedadDesc());
-        entity.setAutorizacion(request.getAutorizacion());
-        entity.setImagenesDx(request.getImagenesDx());
-        entity.setCausaObjecion(request.getCausaObjecion());
-        entity.setRevSupervision(request.getRevSupervision());
-        entity.setObservacionAuditoria(request.getObservacionAuditoria());
-        entity.setEstadoAuditoria(request.getEstadoAuditoria());
+        if (request.getTipoProcedimiento() != null) entity.setTipoProcedimiento(request.getTipoProcedimiento());
+        if (request.getProcedCod() != null) entity.setProcedCod(request.getProcedCod());
+        if (request.getGqx() != null) entity.setGqx(request.getGqx());
+        if (request.getIntervencion() != null) entity.setIntervencion(request.getIntervencion());
+        if (request.getAyudante1() != null) entity.setAyudante1(request.getAyudante1());
+        if (request.getAyudante2() != null) entity.setAyudante2(request.getAyudante2());
+        if (request.getAuditoriaPorcentaje() != null) entity.setAuditoriaPorcentaje(request.getAuditoriaPorcentaje());
+        if (request.getNovedadDesc() != null) entity.setNovedad(request.getNovedadDesc());
+        if (request.getAutorizacion() != null) entity.setAutorizacion(request.getAutorizacion());
+        if (request.getImagenesDx() != null) entity.setImagenesDx(request.getImagenesDx());
+        if (request.getCausaObjecion() != null) entity.setCausaObjecion(request.getCausaObjecion());
+        if (request.getRevSupervision() != null) entity.setRevSupervision(request.getRevSupervision());
+        if (request.getObservacionAuditoria() != null) entity.setObservacionAuditoria(request.getObservacionAuditoria());
+        if (request.getEstadoAuditoria() != null) entity.setEstadoAuditoria(request.getEstadoAuditoria());
+        if (request.getRegimen() != null) entity.setRegimen(request.getRegimen());
 
         Cirugia actualizado = cirugiaRepository.save(entity);
         return mapToResponse(actualizado);

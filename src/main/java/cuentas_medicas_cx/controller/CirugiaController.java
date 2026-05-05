@@ -1,20 +1,24 @@
 package cuentas_medicas_cx.controller;
 
 import cuentas_medicas_cx.model.dto.request.CirugiaRequestDTO;
+import cuentas_medicas_cx.model.dto.request.CirugiaUpdateRequestDTO;
 import cuentas_medicas_cx.model.dto.request.ImportarCirugiasRequestDTO;
 import cuentas_medicas_cx.model.dto.response.CirugiaResponseDTO;
 import cuentas_medicas_cx.model.dto.response.ImportarCirugiasResponseDTO;
+import cuentas_medicas_cx.model.dto.response.PaginadoDTO;
 import cuentas_medicas_cx.model.dto.external.DinamicaCirugiaDTO;
 import cuentas_medicas_cx.service.CirugiaService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/cirugias")
 @RequiredArgsConstructor
@@ -68,12 +72,18 @@ public class CirugiaController {
         return ResponseEntity.ok(respuesta);
     }
 
-    @Operation(summary = "Listar todos las cirugias",
-            description = "Obtiene la lista completa de todos las cirugias registradas en el sistema.",
+    @Operation(summary = "Listar todos las cirugias con paginación",
+            description = "Obtiene la lista completa de todas las cirugias registradas en el sistema con soporte de paginación y filtro por fecha de cargue.",
             tags={"Cirugias"})
     @GetMapping
-    public ResponseEntity<List<CirugiaResponseDTO>> listarTodos() {
-        List<CirugiaResponseDTO> lista = cirugiaService.listarTodos();
+    public ResponseEntity<PaginadoDTO<CirugiaResponseDTO>> listarTodos(
+            @RequestParam(required = false) String fechaInicio,
+            @RequestParam(required = false) String fechaFin,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        log.info("📥 GET /cirugias - fechaInicio: {}, fechaFin: {}, page: {}, size: {}", fechaInicio, fechaFin, page, size);
+        PaginadoDTO<CirugiaResponseDTO> lista = cirugiaService.listarTodosPageable(fechaInicio, fechaFin, page, size);
+        log.info("✅ Retornando página con {} registros de {}", lista.getContenido().size(), lista.getTotalElementos());
         return ResponseEntity.ok(lista);
     }
 
@@ -86,12 +96,12 @@ public class CirugiaController {
     }
 
     @Operation(summary = "Actualizar cirugia",
-            description = "Actualiza completamente la información de una cirugia existente por su ID.",
+            description = "Actualiza la información de una cirugia existente por su ID usando campos de texto.",
             tags={"Cirugias"})
     @PutMapping("/{id}")
     public ResponseEntity<CirugiaResponseDTO> actualizar(
             @PathVariable Long id,
-            @Valid @RequestBody CirugiaRequestDTO request
+            @RequestBody CirugiaUpdateRequestDTO request
     ) {
         CirugiaResponseDTO respuesta = cirugiaService.actualizar(id, request);
         return ResponseEntity.ok(respuesta);

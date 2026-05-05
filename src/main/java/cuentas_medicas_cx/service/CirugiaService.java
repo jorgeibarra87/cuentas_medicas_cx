@@ -1,9 +1,11 @@
 package cuentas_medicas_cx.service;
 
 import cuentas_medicas_cx.model.dto.request.CirugiaRequestDTO;
+import cuentas_medicas_cx.model.dto.request.CirugiaUpdateRequestDTO;
 import cuentas_medicas_cx.model.dto.request.ImportarCirugiasRequestDTO;
 import cuentas_medicas_cx.model.dto.response.CirugiaResponseDTO;
 import cuentas_medicas_cx.model.dto.response.ImportarCirugiasResponseDTO;
+import cuentas_medicas_cx.model.dto.response.PaginadoDTO;
 import cuentas_medicas_cx.model.dto.external.DinamicaCirugiaDTO;
 
 import java.util.List;
@@ -22,9 +24,11 @@ public interface CirugiaService {
 
     List<CirugiaResponseDTO> listarTodos();
 
+    PaginadoDTO<CirugiaResponseDTO> listarTodosPageable(String fechaInicio, String fechaFin, int page, int size);
+
     List<CirugiaResponseDTO> listarPorIngreso(Long ingresoId);
 
-    CirugiaResponseDTO actualizar(Long id, CirugiaRequestDTO request);
+    CirugiaResponseDTO actualizar(Long id, CirugiaUpdateRequestDTO request);
 
     CirugiaResponseDTO cambiarEstado(Long id, String estado);
 

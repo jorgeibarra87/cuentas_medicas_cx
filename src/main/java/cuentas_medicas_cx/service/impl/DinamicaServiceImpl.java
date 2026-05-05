@@ -36,23 +36,23 @@ public class DinamicaServiceImpl implements DinamicaService {
     }
 
     private static final String QUERY_ENDOSCOPIA_1 = """
-        SELECT 'ENDOSCOPIA' AS TIPO,
-            GENPACIEN.PACNUMDOC AS PACIENTE,
-            ADNINGRESO.AINCONSEC AS INGRESO,
-            RTRIM(ISNULL(GENPACIEN.PACPRINOM, '')) + ' ' + RTRIM(ISNULL(GENPACIEN.PACSEGNOM, '')) + ' ' +
-            RTRIM(ISNULL(GENPACIEN.PACPRIAPE, '')) + ' ' + RTRIM(ISNULL(GENPACIEN.PACSEGAPE, '')) AS NOMBRES,
-            GENSERIPS.SIPCODCUP AS CUPS,
-            GENSERIPS.SIPCODIGO AS PROCED_COD,
-            ISNULL(X_QXGRUPOQX.GRUPOQZ, '') AS GRUPOQXCOD,
-            GENSERIPS.SIPNOMBRE AS INTERVENCION,
-            ISNULL(GENESPECI.geedescri, 'ENDOSCOPIA') AS ESPECIALIDAD,
-            GMENOMCOM AS MEDICO,
-            CONVERT(VARCHAR(16), HCNFOLIO.HCFECFOL, 121) AS FECHA_SOLICITUD,
-            CONVERT(VARCHAR(10), HCRFECCONF, 126) AS FECHA_CARGUE,
-            RIGHT(CONVERT(VARCHAR(8), HCRFECCONF, 108), 8) AS HORA_CARGUE,
-            CONVERT(VARCHAR(16), hcrfecres, 121) AS FECHA_RESULTADO,
-            x_confac.CONCEPTO AS REGIMEN,
-            gdenombre AS ENTIDAD
+        SELECT 'ENDOSCOPIA' TIPO,
+            GENPACIEN.PACNUMDOC As PACIENTE,
+            ADNINGRESO.AINCONSEC As INGRESO,
+            RTrim(GENPACIEN.PACPRINOM) + ' ' + RTrim(GENPACIEN.PACSEGNOM) + ' ' +
+            RTrim(GENPACIEN.PACPRIAPE) + ' ' + RTrim(GENPACIEN.PACSEGAPE) As NOMBRES,
+            GENSERIPS.SIPCODCUP As CUPS,
+            GENSERIPS.SIPCODIGO As PROCED_COD,
+            X_QXGRUPOQX.GRUPOQZ As GRUPOQXCOD,
+            (GENSERIPS.SIPNOMBRE) As INTERVENCION,
+            (geedescri) As ESPECIALIDAD,
+            GMENOMCOM MEDICO,
+            convert(char(16),HCNFOLIO.HCFECFOL,121) As FECHA_SOLICITUD,
+            convert(char(16),HCRFECCONF,106) AS FECHA_CARGUE,
+            RIGHT(CONVERT(DATETIME, HCRFECCONF, 108),8) AS HORA_CARGUE,
+            convert(char(16),hcrfecres,121) as FECHA_RESULTADO,
+            concepto regimen,
+            gdenombre entidad
         FROM hcnfolio
         INNER JOIN genpacien ON genpacien.oid = hcnfolio.genpacien
         INNER JOIN adningreso ON adningreso.oid = hcnfolio.adningreso
@@ -65,6 +65,7 @@ public class DinamicaServiceImpl implements DinamicaService {
         INNER JOIN GENESPECI ON HCNFOLIO.GENESPECI = GENESPECI.OID
         INNER JOIN GENDETCON ON GENDETCON.OID = adningreso.GENDETCON
         INNER JOIN x_confac ON x_confac.codigo = gendetcon.gdeconfac
+        INNER JOIN genmunici ON genmunici.oid = genpacien.DGNMUNICIPIO
         LEFT JOIN X_QXGRUPOQX ON GENSERIPS.SIPCODIGO = X_QXGRUPOQX.CODIGO
         WHERE hcrfecres BETWEEN ?1 AND ?2
           AND HCRCONFIR = 1
@@ -74,33 +75,34 @@ public class DinamicaServiceImpl implements DinamicaService {
         """;
 
     private static final String QUERY_ENDOSCOPIA_2 = """
-        SELECT 'ENDOSCOPIA' AS TIPO,
-            GENPACIEN.PACNUMDOC AS PACIENTE,
-            ADNINGRESO.AINCONSEC AS INGRESO,
-            RTRIM(ISNULL(GENPACIEN.PACPRINOM, '')) + ' ' + RTRIM(ISNULL(GENPACIEN.PACSEGNOM, '')) + ' ' +
-            RTRIM(ISNULL(GENPACIEN.PACPRIAPE, '')) + ' ' + RTRIM(ISNULL(GENPACIEN.PACSEGAPE, '')) AS NOMBRES,
-            GENSERIPS.SIPCODCUP AS CUPS,
-            GENSERIPS.SIPCODIGO AS PROCED_COD,
-            '' AS GRUPOQXCOD,
-            GENSERIPS.SIPNOMBRE AS INTERVENCION,
-            'ENDOSCOPIA' AS ESPECIALIDAD,
-            GMENOMCOM AS MEDICO,
-            CONVERT(VARCHAR(16), HCNSOLEXA.HCSFECSOL, 121) AS FECHA_SOLICITUD,
-            CONVERT(VARCHAR(10), HCRFECCONF, 126) AS FECHA_CARGUE,
-            RIGHT(CONVERT(VARCHAR(8), HCRFECCONF, 108), 8) AS HORA_CARGUE,
-            CONVERT(VARCHAR(16), hcrfecres, 121) AS FECHA_RESULTADO,
-            x_confac.CONCEPTO AS REGIMEN,
-            gdenombre AS ENTIDAD
+        SELECT 'ENDOSCOPIA' TIPO,
+            GENPACIEN.PACNUMDOC As PACIENTE,
+            ADNINGRESO.AINCONSEC As INGRESO,
+            RTrim(GENPACIEN.PACPRINOM) + ' ' + RTrim(GENPACIEN.PACSEGNOM) + ' ' +
+            RTrim(GENPACIEN.PACPRIAPE) + ' ' + RTrim(GENPACIEN.PACSEGAPE) As NOMBRES,
+            GENSERIPS.SIPCODCUP As CUPS,
+            GENSERIPS.SIPCODIGO As PROCED_COD,
+            '' As GRUPOQXCOD,
+            (GENSERIPS.SIPNOMBRE) As INTERVENCION,
+            'ENDOSCOPIA' As ESPECIALIDAD,
+            GMENOMCOM MEDICO,
+            convert(char(16),HCNSOLEXA.HCSFECSOL,121) As FECHA_SOLICITUD,
+            convert(char(16),HCRFECCONF,106) AS FECHA_CARGUE,
+            RIGHT(CONVERT(DATETIME, HCRFECCONF, 108),8) AS HORA_CARGUE,
+            convert(char(16),hcrfecres,121) As FECHA_RESULTADO,
+            concepto regimen,
+            gdenombre entidad
         FROM genpacien
         INNER JOIN adningreso ON adningreso.genpacien = genpacien.oid
-        INNER JOIN HCNSOLEXA ON HCNSOLEXA.adningreso = adningreso.oid
-        INNER JOIN genserips ON genserips.oid = HCNSOLEXA.genserips
-        INNER JOIN HCNRESEXA ON HCNSOLEXA.HCNRESEXA = HCNRESEXA.oid
+        INNER JOIN HCNSOLexa ON HCNSOLexa.adningreso = adningreso.oid
+        INNER JOIN genserips ON genserips.oid = HCNSOLexa.genserips
+        INNER JOIN HCNRESexa ON HCNSOLexa.HCNRESexa = HCNRESexa.oid
         INNER JOIN GENARESER ON GENARESER.OID = genserips.GENARESER1
-        INNER JOIN GENMEDICO ON GENMEDICO.OID = HCNRESEXA.GENMEDICO
+        INNER JOIN GENMEDICO ON GENMEDICO.OID = HCNRESexa.GENMEDICO
         INNER JOIN gentercer ON gentercer.oid = genmedico.gentercer
         INNER JOIN GENDETCON ON GENDETCON.OID = adningreso.GENDETCON
         INNER JOIN x_confac ON x_confac.codigo = gendetcon.gdeconfac
+        INNER JOIN genmunici ON genmunici.oid = genpacien.DGNMUNICIPIO
         WHERE hcrfecres BETWEEN ?1 AND ?2
           AND HCRCONFIR = 1
           AND (sipcodigo IN ('999','21511','21332') OR sipcodigo LIKE '999-%')
@@ -108,26 +110,27 @@ public class DinamicaServiceImpl implements DinamicaService {
         """;
 
     private static final String QUERY_CIRUGIA = """
-        SELECT 'CIRUGIA' AS TIPO,
-            GENPACIEN.PACNUMDOC AS PACIENTE,
-            ADNINGRESO.AINCONSEC AS INGRESO,
-            RTRIM(ISNULL(GENPACIEN.PACPRINOM, '')) + ' ' + RTRIM(ISNULL(GENPACIEN.PACSEGNOM, '')) + ' ' +
-            RTRIM(ISNULL(GENPACIEN.PACPRIAPE, '')) + ' ' + RTRIM(ISNULL(GENPACIEN.PACSEGAPE, '')) AS NOMBRES,
-            GENSERIPS.SIPCODCUP AS CUPS,
-            GENSERIPS.SIPCODIGO AS PROCED_COD,
-            ISNULL(X_QXGRUPOQX.GRUPOQZ, '') AS GRUPOQXCOD,
-            GENSERIPS.SIPNOMBRE AS INTERVENCION,
-            ISNULL(GENESPECI.geedescri, '') AS ESPECIALIDAD,
-            GMENOMCOM AS MEDICO,
-            '' AS FECHA_SOLICITUD,
-            CONVERT(VARCHAR(10), HCNFOLIO.HCFECFOL, 126) AS FECHA_CARGUE,
-            RIGHT(CONVERT(VARCHAR(8), HCNFOLIO.HCFECFOL, 108), 8) AS HORA_CARGUE,
-            '' AS FECHA_RESULTADO,
-            x_confac.CONCEPTO AS REGIMEN,
-            gdenombre AS ENTIDAD
+        SELECT 'CIRUGIA' TIPO,
+            GENPACIEN.PACNUMDOC As PACIENTE,
+            ADNINGRESO.AINCONSEC As INGRESO,
+            RTrim(GENPACIEN.PACPRINOM) + ' ' + RTrim(GENPACIEN.PACSEGNOM) + ' ' +
+            RTrim(GENPACIEN.PACPRIAPE) + ' ' + RTrim(GENPACIEN.PACSEGAPE) As NOMBRES,
+            GENSERIPS.SIPCODCUP As CUPS,
+            GENSERIPS.SIPCODIGO As PROCED_COD,
+            X_QXGRUPOQX.GRUPOQZ As GRUPOQXCOD,
+            (GENSERIPS.SIPNOMBRE) As INTERVENCION,
+            (geedescri) As ESPECIALIDAD,
+            GMENOMCOM MEDICO,
+            '' As FECHA_SOLICITUD,
+            convert(char(16),HCNFOLIO.HCFECFOL,106) AS FECHA_CARGUE,
+            RIGHT(CONVERT(DATETIME, HCNFOLIO.HCFECFOL, 108),8) AS HORA_CARGUE,
+            '' FECHA_RESULTADO,
+            concepto regimen,
+            gdenombre entidad
         FROM HCMHC50
         INNER JOIN HCNFOLIO ON HCMHC50.HCNFOLIO = HCNFOLIO.OID
         INNER JOIN GENPACIEN ON HCNFOLIO.GENPACIEN = GENPACIEN.OID
+        INNER JOIN genmunici ON genmunici.oid = genpacien.DGNMUNICIPIO
         INNER JOIN HCNTIPHIS ON HCNFOLIO.HCNTIPHIS = HCNTIPHIS.OID
         INNER JOIN GENESPECI ON HCNFOLIO.GENESPECI = GENESPECI.OID
         INNER JOIN HCNQXEPAC ON HCNFOLIO.OID = HCNQXEPAC.HCNFOLIO
@@ -136,31 +139,32 @@ public class DinamicaServiceImpl implements DinamicaService {
         INNER JOIN GENDETCON ON GENDETCON.OID = adningreso.GENDETCON
         INNER JOIN GENMEDICO ON GENMEDICO.OID = HCNFOLIO.GENMEDICO
         INNER JOIN x_confac ON x_confac.codigo = gendetcon.gdeconfac
-        LEFT JOIN X_QXGRUPOQX ON GENSERIPS.SIPCODIGO = X_QXGRUPOQX.CODIGO
+        LEFT OUTER JOIN X_QXGRUPOQX ON GENSERIPS.SIPCODIGO = X_QXGRUPOQX.CODIGO
         WHERE HCNFOLIO.HCFECFOL BETWEEN ?1 AND ?2
         """;
 
     private static final String QUERY_RESCATE = """
-        SELECT 'RESCATE ORGANOS' AS TIPO,
-            GENPACIEN.PACNUMDOC AS PACIENTE,
-            ADNINGRESO.AINCONSEC AS INGRESO,
-            RTRIM(ISNULL(GENPACIEN.PACPRINOM, '')) + ' ' + RTRIM(ISNULL(GENPACIEN.PACSEGNOM, '')) + ' ' +
-            RTRIM(ISNULL(GENPACIEN.PACPRIAPE, '')) + ' ' + RTRIM(ISNULL(GENPACIEN.PACSEGAPE, '')) AS NOMBRES,
-            GENSERIPS.SIPCODCUP AS CUPS,
-            GENSERIPS.SIPCODIGO AS PROCED_COD,
-            ISNULL(X_QXGRUPOQX.GRUPOQZ, '') AS GRUPOQXCOD,
-            GENSERIPS.SIPNOMBRE AS INTERVENCION,
-            ISNULL(GENESPECI.geedescri, '') AS ESPECIALIDAD,
-            GMENOMCOM AS MEDICO,
-            '' AS FECHA_SOLICITUD,
-            CONVERT(VARCHAR(10), HCNFOLIO.HCFECFOL, 126) AS FECHA_CARGUE,
-            RIGHT(CONVERT(VARCHAR(8), HCNFOLIO.HCFECFOL, 108), 8) AS HORA_CARGUE,
-            '' AS FECHA_RESULTADO,
-            x_confac.CONCEPTO AS REGIMEN,
-            gdenombre AS ENTIDAD
+        SELECT 'RESCATE ORGANOS' TIPO,
+            GENPACIEN.PACNUMDOC As PACIENTE,
+            ADNINGRESO.AINCONSEC As INGRESO,
+            RTrim(GENPACIEN.PACPRINOM) + ' ' + RTrim(GENPACIEN.PACSEGNOM) + ' ' +
+            RTrim(GENPACIEN.PACPRIAPE) + ' ' + RTrim(GENPACIEN.PACSEGAPE) As NOMBRES,
+            GENSERIPS.SIPCODCUP As CUPS,
+            GENSERIPS.SIPCODIGO As PROCED_COD,
+            X_QXGRUPOQX.GRUPOQZ As GRUPOQXCOD,
+            (GENSERIPS.SIPNOMBRE) As INTERVENCION,
+            (geedescri) As ESPECIALIDAD,
+            GMENOMCOM MEDICO,
+            '' As FECHA_SOLICITUD,
+            convert(char(16),HCNFOLIO.HCFECFOL,106) AS FECHA_CARGUE,
+            RIGHT(CONVERT(DATETIME, HCNFOLIO.HCFECFOL, 108),8) AS HORA_CARGUE,
+            '' FECHA_RESULTADO,
+            concepto regimen,
+            gdenombre entidad
         FROM HCMHC101
         INNER JOIN HCNFOLIO ON HCMHC101.HCNFOLIO = HCNFOLIO.OID
         INNER JOIN GENPACIEN ON HCNFOLIO.GENPACIEN = GENPACIEN.OID
+        INNER JOIN genmunici ON genmunici.oid = genpacien.DGNMUNICIPIO
         INNER JOIN HCNTIPHIS ON HCNFOLIO.HCNTIPHIS = HCNTIPHIS.OID
         INNER JOIN GENESPECI ON HCNFOLIO.GENESPECI = GENESPECI.OID
         INNER JOIN HCNQXEPAC ON HCNFOLIO.OID = HCNQXEPAC.HCNFOLIO
@@ -169,7 +173,7 @@ public class DinamicaServiceImpl implements DinamicaService {
         INNER JOIN GENDETCON ON GENDETCON.OID = adningreso.GENDETCON
         INNER JOIN GENMEDICO ON GENMEDICO.OID = HCNFOLIO.GENMEDICO
         INNER JOIN x_confac ON x_confac.codigo = gendetcon.gdeconfac
-        LEFT JOIN X_QXGRUPOQX ON GENSERIPS.SIPCODIGO = X_QXGRUPOQX.CODIGO
+        LEFT OUTER JOIN X_QXGRUPOQX ON GENSERIPS.SIPCODIGO = X_QXGRUPOQX.CODIGO
         WHERE HCNFOLIO.HCFECFOL BETWEEN ?1 AND ?2
         """;
 
@@ -178,10 +182,15 @@ public class DinamicaServiceImpl implements DinamicaService {
         log.info("Consultando cirugías desde Dinámica entre {} y {}", fechaInicio, fechaFin);
         List<DinamicaCirugiaDTO> resultados = new ArrayList<>();
         
-        String sql = QUERY_ENDOSCOPIA_1.replace("?1", "'" + fechaInicio + "'").replace("?2", "'" + fechaFin + "'") + " UNION ALL " 
-                   + QUERY_ENDOSCOPIA_2.replace("?1", "'" + fechaInicio + "'").replace("?2", "'" + fechaFin + "'") + " UNION ALL " 
-                   + QUERY_CIRUGIA.replace("?1", "'" + fechaInicio + "'").replace("?2", "'" + fechaFin + "'") + " UNION ALL " 
-                   + QUERY_RESCATE.replace("?1", "'" + fechaInicio + "'").replace("?2", "'" + fechaFin + "'")
+        String fechaInicioFmt = convertirFechaFormato(fechaInicio);
+        String fechaFinFmt = convertirFechaFormato(fechaFin);
+        
+        log.info("Fechas convertidas: {} -> {}", fechaInicio, fechaInicioFmt);
+        
+        String sql = QUERY_ENDOSCOPIA_1.replace("?1", "'" + fechaInicioFmt + "'").replace("?2", "'" + fechaFinFmt + "'") + " UNION ALL " 
+                   + QUERY_ENDOSCOPIA_2.replace("?1", "'" + fechaInicioFmt + "'").replace("?2", "'" + fechaFinFmt + "'") + " UNION ALL " 
+                   + QUERY_CIRUGIA.replace("?1", "'" + fechaInicioFmt + "'").replace("?2", "'" + fechaFinFmt + "'") + " UNION ALL " 
+                   + QUERY_RESCATE.replace("?1", "'" + fechaInicioFmt + "'").replace("?2", "'" + fechaFinFmt + "'")
                    + " ORDER BY Ingreso, Fecha_Cargue";
         
         try (Connection conn = getExternalDataSource().getConnection();
@@ -222,5 +231,19 @@ public class DinamicaServiceImpl implements DinamicaService {
     @Override
     public List<DinamicaCirugiaDTO> obtenerCirugiasPorFechas(String fechaInicio) {
         return obtenerCirugiasPorFechas(fechaInicio, fechaInicio);
+    }
+
+    private String convertirFechaFormato(String fecha) {
+        if (fecha == null || fecha.isEmpty()) return fecha;
+        if (fecha.matches("\\d{2}/\\d{2}/\\d{4}")) return fecha;
+        try {
+            String[] parts = fecha.split("-");
+            if (parts.length == 3) {
+                return parts[2] + "/" + parts[1] + "/" + parts[0];
+            }
+        } catch (Exception e) {
+            log.warn("Error al convertir fecha: {}", fecha);
+        }
+        return fecha;
     }
 }

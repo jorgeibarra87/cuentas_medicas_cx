@@ -49,4 +49,15 @@ public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
     Page<Cirugia> findByFechaCargueBetween(String fechaInicio, String fechaFin, Pageable pageable);
 
     Page<Cirugia> findAllByOrderByFechaCargueDescHoraCargueDesc(Pageable pageable);
+
+    @Query("SELECT c FROM Cirugia c " +
+           "LEFT JOIN c.paciente p " +
+           "LEFT JOIN c.cups cu " +
+           "LEFT JOIN c.medico m " +
+           "LEFT JOIN c.ingreso i " +
+           "WHERE LOWER(p.numeroIdentificacion) LIKE LOWER(CONCAT('%', :busqueda, '%')) " +
+           "OR LOWER(cu.codigo) LIKE LOWER(CONCAT('%', :busqueda, '%')) " +
+           "OR LOWER(m.nombreCompleto) LIKE LOWER(CONCAT('%', :busqueda, '%')) " +
+           "OR LOWER(i.numeroIngreso) LIKE LOWER(CONCAT('%', :busqueda, '%'))")
+    Page<Cirugia> buscarPor(@Param("busqueda") String busqueda, Pageable pageable);
 }

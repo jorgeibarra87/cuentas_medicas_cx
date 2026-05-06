@@ -24,7 +24,7 @@ public interface CirugiaService {
 
     List<CirugiaResponseDTO> listarTodos();
 
-    PaginadoDTO<CirugiaResponseDTO> listarTodosPageable(String fechaInicio, String fechaFin, int page, int size);
+    PaginadoDTO<CirugiaResponseDTO> listarTodosPageable(String fechaInicio, String fechaFin, String busqueda, int page, int size);
 
     List<CirugiaResponseDTO> listarPorIngreso(Long ingresoId);
 

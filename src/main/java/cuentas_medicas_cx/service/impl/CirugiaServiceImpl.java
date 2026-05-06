@@ -478,19 +478,24 @@ public class CirugiaServiceImpl implements CirugiaService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaginadoDTO<CirugiaResponseDTO> listarTodosPageable(String fechaInicio, String fechaFin, int page, int size) {
-        log.info("📋 Listar pageable - fechaInicio: {}, fechaFin: {}, page: {}, size: {}", fechaInicio, fechaFin, page, size);
+    public PaginadoDTO<CirugiaResponseDTO> listarTodosPageable(String fechaInicio, String fechaFin, String busqueda, int page, int size) {
+        log.info("📋 Listar pageable - fechaInicio: {}, fechaFin: {}, busqueda: {}, page: {}, size: {}", fechaInicio, fechaFin, busqueda, page, size);
         Sort sort = Sort.by(Sort.Direction.DESC, "fechaCargue").and(Sort.by(Sort.Direction.DESC, "horaCargue"));
         PageRequest pageRequest = PageRequest.of(page, size, sort);
         Page<CirugiaResponseDTO> resultPage;
-        if (fechaInicio != null && !fechaInicio.isEmpty() && fechaFin != null && !fechaFin.isEmpty()) {
+        if (busqueda != null && !busqueda.isEmpty()) {
+            log.info("🔍 Buscando por término: {}", busqueda);
+            Page<Cirugia> cirugiasPage = cirugiaRepository.buscarPor(busqueda, pageRequest);
+            resultPage = cirugiasPage.map(this::mapToResponse);
+            log.info("✅ Encontradas {} cirugías con búsqueda", cirugiasPage.getTotalElements());
+        } else if (fechaInicio != null && !fechaInicio.isEmpty() && fechaFin != null && !fechaFin.isEmpty()) {
             log.info("🔍 Buscando por rango de fechas: {} a {}", fechaInicio, fechaFin);
             Page<Cirugia> cirugiasPage = cirugiaRepository.findByFechaCargueBetween(fechaInicio, fechaFin, pageRequest);
             resultPage = cirugiasPage.map(this::mapToResponse);
             log.info("✅ Encontradas {} cirugías en rango", cirugiasPage.getTotalElements());
         } else {
             log.info("🔍 Buscando todas las cirugías (sin filtro de fecha)");
-            Page<Cirugia> cirugiasPage = cirugiaRepository.findAll(pageRequest);
+            Page<Cirugia> cirugiasPage = cirugiaRepository.findAllByOrderByFechaCargueDescHoraCargueDesc(pageRequest);
             resultPage = cirugiasPage.map(this::mapToResponse);
             log.info("✅ Total cirugías en BD: {}", cirugiasPage.getTotalElements());
         }

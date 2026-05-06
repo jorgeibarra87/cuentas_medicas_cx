@@ -48,6 +48,8 @@ public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
 
     Page<Cirugia> findByFechaCargueBetween(String fechaInicio, String fechaFin, Pageable pageable);
 
+    Page<Cirugia> findByFechaResultadoBetween(String fechaInicio, String fechaFin, Pageable pageable);
+
     Page<Cirugia> findAllByOrderByFechaCargueDescHoraCargueDesc(Pageable pageable);
 
     @Query("SELECT c FROM Cirugia c " +

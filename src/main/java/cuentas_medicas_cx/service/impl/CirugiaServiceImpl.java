@@ -489,7 +489,7 @@ public class CirugiaServiceImpl implements CirugiaService {
             resultPage = cirugiasPage.map(this::mapToResponse);
             log.info("✅ Encontradas {} cirugías con búsqueda", cirugiasPage.getTotalElements());
         } else if (fechaInicio != null && !fechaInicio.isEmpty() && fechaFin != null && !fechaFin.isEmpty()) {
-            log.info("🔍 Buscando por rango de fechas: {} a {}", fechaInicio, fechaFin);
+            log.info("🔍 Buscando por rango de fechas (fechaCargue): {} a {}", fechaInicio, fechaFin);
             Page<Cirugia> cirugiasPage = cirugiaRepository.findByFechaCargueBetween(fechaInicio, fechaFin, pageRequest);
             resultPage = cirugiasPage.map(this::mapToResponse);
             log.info("✅ Encontradas {} cirugías en rango", cirugiasPage.getTotalElements());
@@ -714,55 +714,55 @@ public class CirugiaServiceImpl implements CirugiaService {
             return fecha.substring(0, 10);
         }
         
-        fecha = fecha.replace("/", "-");
-        
         try {
+            String[] parts;
             if (fecha.contains("-")) {
-                String[] parts = fecha.split("-");
-                if (parts.length == 3) {
-                    String p1 = parts[0].trim();
-                    String p2 = parts[1].trim().toLowerCase();
-                    String p3 = parts[2].trim().split("\\s")[0].trim();
-                    
-                    String dia, mes, anio;
-                    
-                    if (p1.length() == 4) {
-                        anio = p1;
-                        mes = p2;
-                        dia = p3;
-                    } else if (p3.length() == 4) {
-                        dia = p1;
-                        mes = p2;
-                        anio = p3;
-                    } else {
-                        dia = p1;
-                        mes = p2;
-                        anio = p3;
-                    }
-                    
-                    if (anio.length() == 2) {
-                        anio = "20" + anio;
-                    }
-                    
-                    int mesNum;
-                    switch (mes) {
-                        case "ene": case "jan": mesNum = 1; break;
-                        case "feb": case "02": case "2": mesNum = 2; break;
-                        case "mar": case "03": case "3": mesNum = 3; break;
-                        case "abr": case "apr": case "04": case "4": mesNum = 4; break;
-                        case "may": case "05": case "5": mesNum = 5; break;
-                        case "jun": case "06": case "6": mesNum = 6; break;
-                        case "jul": case "07": case "7": mesNum = 7; break;
-                        case "ago": case "aug": case "08": case "8": mesNum = 8; break;
-                        case "sep": case "09": case "9": mesNum = 9; break;
-                        case "oct": case "10": mesNum = 10; break;
-                        case "nov": case "11": mesNum = 11; break;
-                        case "dic": case "dec": case "12": mesNum = 12; break;
-                        default: return fecha;
-                    }
-                    
-                    return String.format("%04d-%02d-%02d", Integer.parseInt(anio), mesNum, Integer.parseInt(dia));
+                parts = fecha.split("-");
+            } else if (fecha.contains("/")) {
+                parts = fecha.split("/");
+            } else if (fecha.contains(" ")) {
+                parts = fecha.split("\\s+");
+            } else {
+                return fecha;
+            }
+            
+            if (parts.length == 3) {
+                String p1 = parts[0].trim();
+                String p2 = parts[1].trim().toLowerCase();
+                String p3 = parts[2].trim().split("\\s")[0].trim();
+                
+                String dia, mes, anio;
+                
+                if (p1.length() == 4) {
+                    anio = p1; mes = p2; dia = p3;
+                } else if (p3.length() == 4) {
+                    dia = p1; mes = p2; anio = p3;
+                } else {
+                    dia = p1; mes = p2; anio = p3;
                 }
+                
+                if (anio.length() == 2) {
+                    anio = "20" + anio;
+                }
+                
+                int mesNum;
+                switch (mes) {
+                    case "ene": case "jan": mesNum = 1; break;
+                    case "feb": case "02": case "2": mesNum = 2; break;
+                    case "mar": case "03": case "3": mesNum = 3; break;
+                    case "abr": case "apr": case "04": case "4": mesNum = 4; break;
+                    case "may": case "05": case "5": mesNum = 5; break;
+                    case "jun": case "06": case "6": mesNum = 6; break;
+                    case "jul": case "07": case "7": mesNum = 7; break;
+                    case "ago": case "aug": case "08": case "8": mesNum = 8; break;
+                    case "sep": case "09": case "9": mesNum = 9; break;
+                    case "oct": case "10": mesNum = 10; break;
+                    case "nov": case "11": mesNum = 11; break;
+                    case "dic": case "dec": case "12": mesNum = 12; break;
+                    default: return fecha;
+                }
+                
+                return String.format("%04d-%02d-%02d", Integer.parseInt(anio), mesNum, Integer.parseInt(dia));
             }
         } catch (Exception e) {
             return fecha;

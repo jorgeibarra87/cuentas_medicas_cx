@@ -31,8 +31,9 @@ public class CirugiaController {
             tags={"Cirugias"})
     @PostMapping("/importar/bd")
     public ResponseEntity<ImportarCirugiasResponseDTO> importarDesdeDinamicaBD(
-            @RequestParam String fecha) {
-        return ResponseEntity.ok(cirugiaService.importarDesdeDinamicaBD(fecha, fecha));
+            @RequestParam String fechaInicio,
+            @RequestParam String fechaFin) {
+        return ResponseEntity.ok(cirugiaService.importarDesdeDinamicaBD(fechaInicio, fechaFin));
     }
 
     @Operation(summary = "Obtener cirugías de Dinámica sin guardar",
@@ -72,16 +73,17 @@ public class CirugiaController {
     }
 
     @Operation(summary = "Listar todos las cirugias con paginación",
-            description = "Obtiene la lista completa de todas las cirugias registradas en el sistema con soporte de paginación y filtro por fecha de cargue o búsqueda.",
+            description = "Obtiene la lista completa de todas las cirugias registradas en el sistema con soporte de paginación y filtro por rango de fechas o búsqueda.",
             tags={"Cirugias"})
     @GetMapping
     public ResponseEntity<PaginadoDTO<CirugiaResponseDTO>> listarTodos(
-            @RequestParam(required = false) String fecha,
+            @RequestParam(required = false) String fechaInicio,
+            @RequestParam(required = false) String fechaFin,
             @RequestParam(required = false) String busqueda,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
-        log.info("📥 GET /cirugias - fecha: {}, busqueda: {}, page: {}, size: {}", fecha, busqueda, page, size);
-        PaginadoDTO<CirugiaResponseDTO> lista = cirugiaService.listarTodosPageable(fecha, fecha, busqueda, page, size);
+        log.info("📥 GET /cirugias - fechaInicio: {}, fechaFin: {}, busqueda: {}, page: {}, size: {}", fechaInicio, fechaFin, busqueda, page, size);
+        PaginadoDTO<CirugiaResponseDTO> lista = cirugiaService.listarTodosPageable(fechaInicio, fechaFin, busqueda, page, size);
         log.info("✅ Retornando página con {} registros de {}", lista.getContenido().size(), lista.getTotalElementos());
         return ResponseEntity.ok(lista);
     }

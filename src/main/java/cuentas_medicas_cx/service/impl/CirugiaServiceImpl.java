@@ -605,6 +605,7 @@ public class CirugiaServiceImpl implements CirugiaService {
         if (request.getIntervencion() != null) entity.setIntervencion(request.getIntervencion());
         if (request.getAyudante1() != null) entity.setAyudante1(request.getAyudante1());
         if (request.getAyudante2() != null) entity.setAyudante2(request.getAyudante2());
+        if (request.getLiquidacion() != null) entity.setLiquidacion(request.getLiquidacion());
         if (request.getAuditoriaPorcentaje() != null) entity.setAuditoriaPorcentaje(request.getAuditoriaPorcentaje());
         if (request.getNovedadDesc() != null) entity.setNovedad(request.getNovedadDesc());
         if (request.getAutorizacion() != null) entity.setAutorizacion(request.getAutorizacion());

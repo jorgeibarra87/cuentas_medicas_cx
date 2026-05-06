@@ -31,9 +31,8 @@ public class CirugiaController {
             tags={"Cirugias"})
     @PostMapping("/importar/bd")
     public ResponseEntity<ImportarCirugiasResponseDTO> importarDesdeDinamicaBD(
-            @RequestParam String fechaInicio,
-            @RequestParam String fechaFin) {
-        return ResponseEntity.ok(cirugiaService.importarDesdeDinamicaBD(fechaInicio, fechaFin));
+            @RequestParam String fecha) {
+        return ResponseEntity.ok(cirugiaService.importarDesdeDinamicaBD(fecha, fecha));
     }
 
     @Operation(summary = "Obtener cirugías de Dinámica sin guardar",
@@ -77,13 +76,12 @@ public class CirugiaController {
             tags={"Cirugias"})
     @GetMapping
     public ResponseEntity<PaginadoDTO<CirugiaResponseDTO>> listarTodos(
-            @RequestParam(required = false) String fechaInicio,
-            @RequestParam(required = false) String fechaFin,
+            @RequestParam(required = false) String fecha,
             @RequestParam(required = false) String busqueda,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
-        log.info("📥 GET /cirugias - fechaInicio: {}, fechaFin: {}, busqueda: {}, page: {}, size: {}", fechaInicio, fechaFin, busqueda, page, size);
-        PaginadoDTO<CirugiaResponseDTO> lista = cirugiaService.listarTodosPageable(fechaInicio, fechaFin, busqueda, page, size);
+        log.info("📥 GET /cirugias - fecha: {}, busqueda: {}, page: {}, size: {}", fecha, busqueda, page, size);
+        PaginadoDTO<CirugiaResponseDTO> lista = cirugiaService.listarTodosPageable(fecha, fecha, busqueda, page, size);
         log.info("✅ Retornando página con {} registros de {}", lista.getContenido().size(), lista.getTotalElementos());
         return ResponseEntity.ok(lista);
     }

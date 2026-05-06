@@ -480,7 +480,8 @@ public class CirugiaServiceImpl implements CirugiaService {
     @Transactional(readOnly = true)
     public PaginadoDTO<CirugiaResponseDTO> listarTodosPageable(String fechaInicio, String fechaFin, int page, int size) {
         log.info("📋 Listar pageable - fechaInicio: {}, fechaFin: {}, page: {}, size: {}", fechaInicio, fechaFin, page, size);
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "fechaCargue"));
+        Sort sort = Sort.by(Sort.Direction.DESC, "fechaCargue").and(Sort.by(Sort.Direction.DESC, "horaCargue"));
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
         Page<CirugiaResponseDTO> resultPage;
         if (fechaInicio != null && !fechaInicio.isEmpty() && fechaFin != null && !fechaFin.isEmpty()) {
             log.info("🔍 Buscando por rango de fechas: {} a {}", fechaInicio, fechaFin);

@@ -111,6 +111,9 @@ public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
            "GROUP BY SUBSTRING(fechaCargue, 6, 2) ORDER BY mes", nativeQuery = true)
     List<Map<String, Object>> contarPorMes(@Param("anio") String anio);
 
+    @Query(value = "SELECT COUNT(*) FROM cirugias WHERE fechaCargue IS NOT NULL AND fechaCargue LIKE :anio", nativeQuery = true)
+    long contarTotalPorAnio(@Param("anio") String anio);
+
     @Query(value = "SELECT SUBSTRING(fechaCargue, 6, 2) as mes, estadoAuditoria as estado, COUNT(*) as total " +
            "FROM cirugias WHERE fechaCargue IS NOT NULL AND fechaCargue LIKE :anio AND estadoAuditoria IN (:estados) " +
            "GROUP BY SUBSTRING(fechaCargue, 6, 2), estadoAuditoria ORDER BY mes", nativeQuery = true)

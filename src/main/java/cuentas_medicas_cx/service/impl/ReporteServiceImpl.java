@@ -26,14 +26,50 @@ public class ReporteServiceImpl implements ReporteService {
 
         String anioPattern = "%" + anio;
 
-        List<Map<String, Object>> totalPorMes = cirugiaRepository.contarPorMes(anioPattern);
-        List<Map<String, Object>> estadoPorMes = cirugiaRepository.contarPorMesYEstado(anioPattern,
-                Arrays.asList("No facturable", "Adición", "Hecho", "Nulo", "Ok", "Facturable", "Revisión", "Pendiente", "Hecho pendiente", "Adición pendiente"));
-        List<Map<String, Object>> porEspecialidad = cirugiaRepository.contarPorEspecialidad(anioPattern);
-        List<Map<String, Object>> porProcedimiento = cirugiaRepository.contarPorProcedimiento(anioPattern);
-        List<Map<String, Object>> porAuditor = cirugiaRepository.contarPorAuditor(anioPattern);
+        long totalGeneral;
+        List<Map<String, Object>> totalPorMes;
+        List<Map<String, Object>> estadoPorMes;
+        List<Map<String, Object>> porEspecialidad;
+        List<Map<String, Object>> porProcedimiento;
+        List<Map<String, Object>> porAuditor;
 
-        long totalGeneral = cirugiaRepository.count();
+        try {
+            totalPorMes = cirugiaRepository.contarPorMes(anioPattern);
+        } catch (Exception e) {
+            log.error("Error en contarPorMes: {}", e.getMessage());
+            totalPorMes = List.of();
+        }
+
+        try {
+            estadoPorMes = cirugiaRepository.contarPorMesYEstado(anioPattern,
+                    Arrays.asList("No facturable", "Adición", "Hecho", "Nulo", "Ok", "Facturable", "Revisión", "Pendiente", "Hecho pendiente", "Adición pendiente"));
+        } catch (Exception e) {
+            log.error("Error en contarPorMesYEstado: {}", e.getMessage());
+            estadoPorMes = List.of();
+        }
+
+        try {
+            porEspecialidad = cirugiaRepository.contarPorEspecialidad(anioPattern);
+        } catch (Exception e) {
+            log.error("Error en contarPorEspecialidad: {}", e.getMessage());
+            porEspecialidad = List.of();
+        }
+
+        try {
+            porProcedimiento = cirugiaRepository.contarPorProcedimiento(anioPattern);
+        } catch (Exception e) {
+            log.error("Error en contarPorProcedimiento: {}", e.getMessage());
+            porProcedimiento = List.of();
+        }
+
+        try {
+            porAuditor = cirugiaRepository.contarPorAuditor(anioPattern);
+        } catch (Exception e) {
+            log.error("Error en contarPorAuditor: {}", e.getMessage());
+            porAuditor = List.of();
+        }
+
+        totalGeneral = cirugiaRepository.contarTotalPorAnio(anioPattern);
 
         ReporteCirugiasResponseDTO response = new ReporteCirugiasResponseDTO();
         response.setTotalPorMes(totalPorMes);

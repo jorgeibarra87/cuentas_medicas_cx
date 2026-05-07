@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
@@ -62,4 +63,36 @@ public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
            "OR LOWER(m.nombreCompleto) LIKE LOWER(CONCAT('%', :busqueda, '%')) " +
            "OR LOWER(i.numeroIngreso) LIKE LOWER(CONCAT('%', :busqueda, '%'))")
     Page<Cirugia> buscarPor(@Param("busqueda") String busqueda, Pageable pageable);
+
+    Page<Cirugia> findByTipoProcedimientoAndEntidadSaludId(String tipo, Long entidadId, Pageable pageable);
+
+    Page<Cirugia> findByTipoProcedimiento(String tipo, Pageable pageable);
+
+    Page<Cirugia> findByEntidadSaludId(Long entidadId, Pageable pageable);
+
+    @Query(value = "SELECT SUBSTRING(fechaCargue, 6, 2) as mes, COUNT(*) as total FROM cirugias " +
+           "WHERE fechaCargue IS NOT NULL AND fechaCargue LIKE :anio " +
+           "GROUP BY SUBSTRING(fechaCargue, 6, 2) ORDER BY mes", nativeQuery = true)
+    List<Map<String, Object>> contarPorMes(@Param("anio") String anio);
+
+    @Query(value = "SELECT SUBSTRING(fechaCargue, 6, 2) as mes, estadoAuditoria as estado, COUNT(*) as total " +
+           "FROM cirugias WHERE fechaCargue IS NOT NULL AND fechaCargue LIKE :anio AND estadoAuditoria IN (:estados) " +
+           "GROUP BY SUBSTRING(fechaCargue, 6, 2), estadoAuditoria ORDER BY mes", nativeQuery = true)
+    List<Map<String, Object>> contarPorMesYEstado(@Param("anio") String anio, @Param("estados") List<String> estados);
+
+    @Query(value = "SELECT e.nombre as especialidad, COUNT(*) as total FROM cirugias c " +
+           "JOIN especialidades e ON c.ESPECIALIDAD_ID = e.id " +
+           "WHERE fechaCargue IS NOT NULL AND fechaCargue LIKE :anio " +
+           "GROUP BY e.nombre ORDER BY total DESC", nativeQuery = true)
+    List<Map<String, Object>> contarPorEspecialidad(@Param("anio") String anio);
+
+    @Query(value = "SELECT c.intervencion, COUNT(*) as total FROM cirugias c " +
+           "WHERE fechaCargue IS NOT NULL AND fechaCargue LIKE :anio AND c.intervencion IS NOT NULL AND c.intervencion != '' " +
+           "GROUP BY c.intervencion ORDER BY total DESC", nativeQuery = true)
+    List<Map<String, Object>> contarPorProcedimiento(@Param("anio") String anio);
+
+    @Query(value = "SELECT revSupervision as auditor, COUNT(*) as total FROM cirugias " +
+           "WHERE revSupervision IS NOT NULL AND revSupervision != '' AND fechaCargue LIKE :anio " +
+           "GROUP BY revSupervision ORDER BY total DESC", nativeQuery = true)
+    List<Map<String, Object>> contarPorAuditor(@Param("anio") String anio);
 }

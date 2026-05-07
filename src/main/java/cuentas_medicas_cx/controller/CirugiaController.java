@@ -73,17 +73,19 @@ public class CirugiaController {
     }
 
     @Operation(summary = "Listar todos las cirugias con paginación",
-            description = "Obtiene la lista completa de todas las cirugias registradas en el sistema con soporte de paginación y filtro por rango de fechas o búsqueda.",
+            description = "Obtiene la lista completa de todas las cirugias registradas en el sistema con soporte de paginación y filtro por rango de fechas, búsqueda, tipo o entidad.",
             tags={"Cirugias"})
     @GetMapping
     public ResponseEntity<PaginadoDTO<CirugiaResponseDTO>> listarTodos(
             @RequestParam(required = false) String fechaInicio,
             @RequestParam(required = false) String fechaFin,
             @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) Long entidadId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
-        log.info("📥 GET /cirugias - fechaInicio: {}, fechaFin: {}, busqueda: {}, page: {}, size: {}", fechaInicio, fechaFin, busqueda, page, size);
-        PaginadoDTO<CirugiaResponseDTO> lista = cirugiaService.listarTodosPageable(fechaInicio, fechaFin, busqueda, page, size);
+        log.info("📥 GET /cirugias - fechaInicio: {}, fechaFin: {}, busqueda: {}, tipo: {}, entidadId: {}, page: {}, size: {}", fechaInicio, fechaFin, busqueda, tipo, entidadId, page, size);
+        PaginadoDTO<CirugiaResponseDTO> lista = cirugiaService.listarTodosPageable(fechaInicio, fechaFin, busqueda, tipo, entidadId, page, size);
         log.info("✅ Retornando página con {} registros de {}", lista.getContenido().size(), lista.getTotalElementos());
         return ResponseEntity.ok(lista);
     }

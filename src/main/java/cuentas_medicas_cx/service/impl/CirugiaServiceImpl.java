@@ -262,7 +262,7 @@ public class CirugiaServiceImpl implements CirugiaService {
                 cirugia.setFechaCargue(fechaCargue);
                 cirugia.setHoraCargue(horaCargue);
                 cirugia.setFechaResultado(normalizarFecha(dato.getFechaResultado()));
-                cirugia.setEstadoAuditoria("PENDIENTE");
+                cirugia.setEstadoAuditoria("Pendiente");
 
                 if (dato.getPaciente() != null && !dato.getPaciente().isEmpty()) {
                     List<Paciente> listaPac = pacienteRepository.findAllByNumeroIdentificacion(dato.getPaciente());
@@ -478,8 +478,8 @@ public class CirugiaServiceImpl implements CirugiaService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaginadoDTO<CirugiaResponseDTO> listarTodosPageable(String fechaInicio, String fechaFin, String busqueda, int page, int size) {
-        log.info("📋 Listar pageable - fechaInicio: {}, fechaFin: {}, busqueda: {}, page: {}, size: {}", fechaInicio, fechaFin, busqueda, page, size);
+    public PaginadoDTO<CirugiaResponseDTO> listarTodosPageable(String fechaInicio, String fechaFin, String busqueda, String tipo, Long entidadId, int page, int size) {
+        log.info("📋 Listar pageable - fechaInicio: {}, fechaFin: {}, busqueda: {}, tipo: {}, entidadId: {}, page: {}, size: {}", fechaInicio, fechaFin, busqueda, tipo, entidadId, page, size);
         Sort sort = Sort.by(Sort.Direction.DESC, "fechaCargue").and(Sort.by(Sort.Direction.DESC, "horaCargue"));
         PageRequest pageRequest = PageRequest.of(page, size, sort);
         Page<CirugiaResponseDTO> resultPage;
@@ -488,6 +488,21 @@ public class CirugiaServiceImpl implements CirugiaService {
             Page<Cirugia> cirugiasPage = cirugiaRepository.buscarPor(busqueda, pageRequest);
             resultPage = cirugiasPage.map(this::mapToResponse);
             log.info("✅ Encontradas {} cirugías con búsqueda", cirugiasPage.getTotalElements());
+        } else if (tipo != null && !tipo.isEmpty() && entidadId != null) {
+            log.info("🔍 Buscando por tipo: {} y entidad: {}", tipo, entidadId);
+            Page<Cirugia> cirugiasPage = cirugiaRepository.findByTipoProcedimientoAndEntidadSaludId(tipo, entidadId, pageRequest);
+            resultPage = cirugiasPage.map(this::mapToResponse);
+            log.info("✅ Encontradas {} cirugías por tipo y entidad", cirugiasPage.getTotalElements());
+        } else if (tipo != null && !tipo.isEmpty()) {
+            log.info("🔍 Buscando por tipo: {}", tipo);
+            Page<Cirugia> cirugiasPage = cirugiaRepository.findByTipoProcedimiento(tipo, pageRequest);
+            resultPage = cirugiasPage.map(this::mapToResponse);
+            log.info("✅ Encontradas {} cirugías por tipo", cirugiasPage.getTotalElements());
+        } else if (entidadId != null) {
+            log.info("🔍 Buscando por entidad: {}", entidadId);
+            Page<Cirugia> cirugiasPage = cirugiaRepository.findByEntidadSaludId(entidadId, pageRequest);
+            resultPage = cirugiasPage.map(this::mapToResponse);
+            log.info("✅ Encontradas {} cirugías por entidad", cirugiasPage.getTotalElements());
         } else if (fechaInicio != null && !fechaInicio.isEmpty() && fechaFin != null && !fechaFin.isEmpty()) {
             log.info("🔍 Buscando por rango de fechas (fechaCargue): {} a {}", fechaInicio, fechaFin);
             Page<Cirugia> cirugiasPage = cirugiaRepository.findByFechaCargueBetween(fechaInicio, fechaFin, pageRequest);

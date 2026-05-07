@@ -482,38 +482,44 @@ public class CirugiaServiceImpl implements CirugiaService {
         log.info("📋 Listar pageable - fechaInicio: {}, fechaFin: {}, busqueda: {}, tipo: {}, entidadId: {}, page: {}, size: {}", fechaInicio, fechaFin, busqueda, tipo, entidadId, page, size);
         Sort sort = Sort.by(Sort.Direction.DESC, "fechaCargue").and(Sort.by(Sort.Direction.DESC, "horaCargue"));
         PageRequest pageRequest = PageRequest.of(page, size, sort);
+        Page<Cirugia> cirugiasPage;
         Page<CirugiaResponseDTO> resultPage;
-        if (busqueda != null && !busqueda.isEmpty()) {
+
+        boolean hasBusqueda = busqueda != null && !busqueda.isEmpty();
+        boolean hasTipo = tipo != null && !tipo.isEmpty();
+        boolean hasEntidad = entidadId != null;
+        boolean hasFechas = fechaInicio != null && !fechaInicio.isEmpty() && fechaFin != null && !fechaFin.isEmpty();
+
+        if (hasBusqueda && hasTipo && hasEntidad) {
+            log.info("🔍 Buscando por busqueda + tipo + entidad");
+            cirugiasPage = cirugiaRepository.buscarPorConFiltros(busqueda, tipo, entidadId, pageRequest);
+        } else if (hasBusqueda && hasTipo) {
+            log.info("🔍 Buscando por busqueda + tipo");
+            cirugiasPage = cirugiaRepository.buscarPorConTipo(busqueda, tipo, pageRequest);
+        } else if (hasBusqueda && hasEntidad) {
+            log.info("🔍 Buscando por busqueda + entidad");
+            cirugiasPage = cirugiaRepository.buscarPorConEntidad(busqueda, entidadId, pageRequest);
+        } else if (hasBusqueda) {
             log.info("🔍 Buscando por término: {}", busqueda);
-            Page<Cirugia> cirugiasPage = cirugiaRepository.buscarPor(busqueda, pageRequest);
-            resultPage = cirugiasPage.map(this::mapToResponse);
-            log.info("✅ Encontradas {} cirugías con búsqueda", cirugiasPage.getTotalElements());
-        } else if (tipo != null && !tipo.isEmpty() && entidadId != null) {
+            cirugiasPage = cirugiaRepository.buscarPor(busqueda, pageRequest);
+        } else if (hasTipo && hasEntidad) {
             log.info("🔍 Buscando por tipo: {} y entidad: {}", tipo, entidadId);
-            Page<Cirugia> cirugiasPage = cirugiaRepository.findByTipoProcedimientoAndEntidadSaludId(tipo, entidadId, pageRequest);
-            resultPage = cirugiasPage.map(this::mapToResponse);
-            log.info("✅ Encontradas {} cirugías por tipo y entidad", cirugiasPage.getTotalElements());
-        } else if (tipo != null && !tipo.isEmpty()) {
+            cirugiasPage = cirugiaRepository.findByTipoProcedimientoAndEntidadSaludId(tipo, entidadId, pageRequest);
+        } else if (hasTipo) {
             log.info("🔍 Buscando por tipo: {}", tipo);
-            Page<Cirugia> cirugiasPage = cirugiaRepository.findByTipoProcedimiento(tipo, pageRequest);
-            resultPage = cirugiasPage.map(this::mapToResponse);
-            log.info("✅ Encontradas {} cirugías por tipo", cirugiasPage.getTotalElements());
-        } else if (entidadId != null) {
+            cirugiasPage = cirugiaRepository.findByTipoProcedimiento(tipo, pageRequest);
+        } else if (hasEntidad) {
             log.info("🔍 Buscando por entidad: {}", entidadId);
-            Page<Cirugia> cirugiasPage = cirugiaRepository.findByEntidadSaludId(entidadId, pageRequest);
-            resultPage = cirugiasPage.map(this::mapToResponse);
-            log.info("✅ Encontradas {} cirugías por entidad", cirugiasPage.getTotalElements());
-        } else if (fechaInicio != null && !fechaInicio.isEmpty() && fechaFin != null && !fechaFin.isEmpty()) {
+            cirugiasPage = cirugiaRepository.findByEntidadSaludId(entidadId, pageRequest);
+        } else if (hasFechas) {
             log.info("🔍 Buscando por rango de fechas (fechaCargue): {} a {}", fechaInicio, fechaFin);
-            Page<Cirugia> cirugiasPage = cirugiaRepository.findByFechaCargueBetween(fechaInicio, fechaFin, pageRequest);
-            resultPage = cirugiasPage.map(this::mapToResponse);
-            log.info("✅ Encontradas {} cirugías en rango", cirugiasPage.getTotalElements());
+            cirugiasPage = cirugiaRepository.findByFechaCargueBetween(fechaInicio, fechaFin, pageRequest);
         } else {
-            log.info("🔍 Buscando todas las cirugías (sin filtro de fecha)");
-            Page<Cirugia> cirugiasPage = cirugiaRepository.findAllByOrderByFechaCargueDescHoraCargueDesc(pageRequest);
-            resultPage = cirugiasPage.map(this::mapToResponse);
-            log.info("✅ Total cirugías en BD: {}", cirugiasPage.getTotalElements());
+            log.info("🔍 Buscando todas las cirugías (sin filtro)");
+            cirugiasPage = cirugiaRepository.findAllByOrderByFechaCargueDescHoraCargueDesc(pageRequest);
         }
+        resultPage = cirugiasPage.map(this::mapToResponse);
+        log.info("✅ Total resultados: {}", cirugiasPage.getTotalElements());
         return new PaginadoDTO<>(resultPage);
     }
 

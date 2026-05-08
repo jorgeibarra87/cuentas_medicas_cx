@@ -24,7 +24,7 @@ public class ReporteServiceImpl implements ReporteService {
     public ReporteCirugiasResponseDTO obtenerReporteAnual(String anio) {
         log.info("📊 Generando reporte anual para: {}", anio);
 
-        String anioPattern = "%" + anio;
+        String anioPattern = anio + "-%";
 
         long totalGeneral;
         List<Map<String, Object>> totalPorMes;

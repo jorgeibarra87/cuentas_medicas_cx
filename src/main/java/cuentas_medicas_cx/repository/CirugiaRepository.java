@@ -106,32 +106,32 @@ public interface CirugiaRepository extends JpaRepository<Cirugia, Long> {
 
     Page<Cirugia> findByEntidadSaludId(Long entidadId, Pageable pageable);
 
-    @Query(value = "SELECT SUBSTRING(fechaCargue, 6, 2) as mes, COUNT(*) as total FROM cirugias " +
-           "WHERE fechaCargue IS NOT NULL AND fechaCargue LIKE :anio " +
-           "GROUP BY SUBSTRING(fechaCargue, 6, 2) ORDER BY mes", nativeQuery = true)
+    @Query(value = "SELECT SUBSTRING(fecha_cargue, 6, 2) as mes, COUNT(*) as total FROM cirugias " +
+           "WHERE fecha_cargue IS NOT NULL AND fecha_cargue LIKE :anio " +
+           "GROUP BY SUBSTRING(fecha_cargue, 6, 2) ORDER BY mes", nativeQuery = true)
     List<Map<String, Object>> contarPorMes(@Param("anio") String anio);
 
-    @Query(value = "SELECT COUNT(*) FROM cirugias WHERE fechaCargue IS NOT NULL AND fechaCargue LIKE :anio", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM cirugias WHERE fecha_cargue IS NOT NULL AND fecha_cargue LIKE :anio", nativeQuery = true)
     long contarTotalPorAnio(@Param("anio") String anio);
 
-    @Query(value = "SELECT SUBSTRING(fechaCargue, 6, 2) as mes, estadoAuditoria as estado, COUNT(*) as total " +
-           "FROM cirugias WHERE fechaCargue IS NOT NULL AND fechaCargue LIKE :anio AND estadoAuditoria IN (:estados) " +
-           "GROUP BY SUBSTRING(fechaCargue, 6, 2), estadoAuditoria ORDER BY mes", nativeQuery = true)
+    @Query(value = "SELECT SUBSTRING(fecha_cargue, 6, 2) as mes, estado_auditoria as estado, COUNT(*) as total " +
+           "FROM cirugias WHERE fecha_cargue IS NOT NULL AND fecha_cargue LIKE :anio AND estado_auditoria IN (:estados) " +
+           "GROUP BY SUBSTRING(fecha_cargue, 6, 2), estado_auditoria ORDER BY mes", nativeQuery = true)
     List<Map<String, Object>> contarPorMesYEstado(@Param("anio") String anio, @Param("estados") List<String> estados);
 
     @Query(value = "SELECT e.nombre as especialidad, COUNT(*) as total FROM cirugias c " +
-           "JOIN especialidades e ON c.ESPECIALIDAD_ID = e.id " +
-           "WHERE fechaCargue IS NOT NULL AND fechaCargue LIKE :anio " +
+           "JOIN especialidades e ON c.especialidad_id = e.id " +
+           "WHERE fecha_cargue IS NOT NULL AND fecha_cargue LIKE :anio " +
            "GROUP BY e.nombre ORDER BY total DESC", nativeQuery = true)
     List<Map<String, Object>> contarPorEspecialidad(@Param("anio") String anio);
 
     @Query(value = "SELECT c.intervencion, COUNT(*) as total FROM cirugias c " +
-           "WHERE fechaCargue IS NOT NULL AND fechaCargue LIKE :anio AND c.intervencion IS NOT NULL AND c.intervencion != '' " +
+           "WHERE fecha_cargue IS NOT NULL AND fecha_cargue LIKE :anio AND c.intervencion IS NOT NULL AND c.intervencion != '' " +
            "GROUP BY c.intervencion ORDER BY total DESC", nativeQuery = true)
     List<Map<String, Object>> contarPorProcedimiento(@Param("anio") String anio);
 
-    @Query(value = "SELECT revSupervision as auditor, COUNT(*) as total FROM cirugias " +
-           "WHERE revSupervision IS NOT NULL AND revSupervision != '' AND fechaCargue LIKE :anio " +
-           "GROUP BY revSupervision ORDER BY total DESC", nativeQuery = true)
+    @Query(value = "SELECT rev_supervision as auditor, COUNT(*) as total FROM cirugias " +
+           "WHERE rev_supervision IS NOT NULL AND rev_supervision != '' AND fecha_cargue LIKE :anio " +
+           "GROUP BY rev_supervision ORDER BY total DESC", nativeQuery = true)
     List<Map<String, Object>> contarPorAuditor(@Param("anio") String anio);
 }

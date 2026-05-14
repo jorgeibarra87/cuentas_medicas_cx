@@ -63,6 +63,26 @@ public class CirugiaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
     }
 
+    @Operation(summary = "Crear cirugia desde nombres",
+            description = "Crea una nueva cirugia usando campos de texto en lugar de IDs de entidades relacionadas. Realiza busqueda o creacion automatica de pacientes, medicos, especialidades, etc.",
+            tags={"Cirugias"})
+    @PostMapping("/desde-nombres")
+    public ResponseEntity<CirugiaResponseDTO> crearDesdeNombres(@RequestBody CirugiaUpdateRequestDTO request) {
+        CirugiaResponseDTO respuesta = cirugiaService.crearDesdeNombres(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
+    }
+
+    @Operation(summary = "Duplicar cirugia con cambios",
+            description = "Crea una copia de una cirugia existente aplicando los cambios especificados. La copia se crea con estado 'Pendiente'.",
+            tags={"Cirugias"})
+    @PostMapping("/{id}/duplicar")
+    public ResponseEntity<CirugiaResponseDTO> duplicar(
+            @PathVariable Long id,
+            @RequestBody CirugiaUpdateRequestDTO request) {
+        CirugiaResponseDTO respuesta = cirugiaService.duplicar(id, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
+    }
+
     @Operation(summary = "Obtener cirugia por ID",
             description = "Recupera la información completa de una cirugia específica por su identificador único.",
             tags={"Cirugias"})

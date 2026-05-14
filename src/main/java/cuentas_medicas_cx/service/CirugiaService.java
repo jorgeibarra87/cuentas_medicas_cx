@@ -20,6 +20,10 @@ public interface CirugiaService {
 
     CirugiaResponseDTO crear(CirugiaRequestDTO request);
 
+    CirugiaResponseDTO crearDesdeNombres(CirugiaUpdateRequestDTO request);
+
+    CirugiaResponseDTO duplicar(Long id, CirugiaUpdateRequestDTO request);
+
     CirugiaResponseDTO obtenerPorId(Long id);
 
     List<CirugiaResponseDTO> listarTodos();

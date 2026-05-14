@@ -461,6 +461,267 @@ public class CirugiaServiceImpl implements CirugiaService {
     }
 
     @Override
+    @Transactional
+    public CirugiaResponseDTO crearDesdeNombres(CirugiaUpdateRequestDTO request) {
+        Cirugia entity = new Cirugia();
+
+        if (request.getPacienteNumeroIdentificacion() != null && !request.getPacienteNumeroIdentificacion().isEmpty()) {
+            List<Paciente> listaPac = pacienteRepository.findAllByNumeroIdentificacion(request.getPacienteNumeroIdentificacion());
+            if (!listaPac.isEmpty()) entity.setPaciente(listaPac.get(0));
+        }
+
+        if (request.getIngresoNumero() != null && !request.getIngresoNumero().isEmpty() && entity.getPaciente() != null) {
+            List<Ingreso> listaIng = ingresoRepository.findAllByNumeroIngreso(request.getIngresoNumero());
+            if (!listaIng.isEmpty()) entity.setIngreso(listaIng.get(0));
+        }
+
+        if (request.getCupsCodigo() != null && !request.getCupsCodigo().isEmpty()) {
+            List<CupsProcedimiento> listaCups = cupsProcedimientoRepository.findAllByCodigo(request.getCupsCodigo());
+            if (!listaCups.isEmpty()) entity.setCups(listaCups.get(0));
+        }
+
+        if (request.getEspecialidadNombre() != null && !request.getEspecialidadNombre().isEmpty()) {
+            List<Especialidad> listaEsp = especialidadRepository.findAllByNombreContainingIgnoreCase(request.getEspecialidadNombre());
+            if (listaEsp.isEmpty()) {
+                try {
+                    Especialidad e = new Especialidad();
+                    e.setNombre(request.getEspecialidadNombre());
+                    e = especialidadRepository.save(e);
+                    entity.setEspecialidad(e);
+                } catch (Exception ex) {
+                    listaEsp = especialidadRepository.findAllByNombreContainingIgnoreCase(request.getEspecialidadNombre());
+                    if (!listaEsp.isEmpty()) entity.setEspecialidad(listaEsp.get(0));
+                }
+            } else {
+                entity.setEspecialidad(listaEsp.get(0));
+            }
+        }
+
+        if (request.getMedicoNombre() != null && !request.getMedicoNombre().isEmpty()) {
+            List<Medico> listaMed = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getMedicoNombre());
+            if (listaMed.isEmpty()) {
+                try {
+                    Medico m = new Medico();
+                    m.setNombreCompleto(request.getMedicoNombre());
+                    m = medicoRepository.save(m);
+                    entity.setMedico(m);
+                } catch (Exception ex) {
+                    listaMed = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getMedicoNombre());
+                    if (!listaMed.isEmpty()) entity.setMedico(listaMed.get(0));
+                }
+            } else {
+                entity.setMedico(listaMed.get(0));
+            }
+        }
+
+        if (request.getAnestesiologoNombre() != null && !request.getAnestesiologoNombre().isEmpty()) {
+            List<Medico> listaAnest = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getAnestesiologoNombre());
+            if (listaAnest.isEmpty()) {
+                try {
+                    Medico m = new Medico();
+                    m.setNombreCompleto(request.getAnestesiologoNombre());
+                    m = medicoRepository.save(m);
+                    entity.setAnestesiologo(m);
+                } catch (Exception ex) {
+                    listaAnest = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getAnestesiologoNombre());
+                    if (!listaAnest.isEmpty()) entity.setAnestesiologo(listaAnest.get(0));
+                }
+            } else {
+                entity.setAnestesiologo(listaAnest.get(0));
+            }
+        }
+
+        if (request.getEntidadSaludNombre() != null && !request.getEntidadSaludNombre().isEmpty()) {
+            List<EntidadesSalud> listaEnt = entidadesSaludRepository.findAllByNombreContainingIgnoreCase(request.getEntidadSaludNombre());
+            if (listaEnt.isEmpty()) {
+                try {
+                    EntidadesSalud e = new EntidadesSalud();
+                    e.setNombre(request.getEntidadSaludNombre().trim());
+                    e = entidadesSaludRepository.save(e);
+                    entity.setEntidadSalud(e);
+                } catch (Exception ex) {
+                    listaEnt = entidadesSaludRepository.findAllByNombreContainingIgnoreCase(request.getEntidadSaludNombre());
+                    if (!listaEnt.isEmpty()) entity.setEntidadSalud(listaEnt.get(0));
+                }
+            } else {
+                entity.setEntidadSalud(listaEnt.get(0));
+            }
+        }
+
+        if (request.getTipoProcedimiento() != null) entity.setTipoProcedimiento(request.getTipoProcedimiento());
+        if (request.getProcedCod() != null) entity.setProcedCod(request.getProcedCod());
+        if (request.getGqx() != null) entity.setGqx(request.getGqx());
+        if (request.getIntervencion() != null) entity.setIntervencion(request.getIntervencion());
+        if (request.getAyudante1() != null) entity.setAyudante1(request.getAyudante1());
+        if (request.getAyudante2() != null) entity.setAyudante2(request.getAyudante2());
+        if (request.getLiquidacion() != null) entity.setLiquidacion(request.getLiquidacion());
+        if (request.getAuditoriaPorcentaje() != null) entity.setAuditoriaPorcentaje(request.getAuditoriaPorcentaje());
+        if (request.getNovedadDesc() != null) entity.setNovedad(request.getNovedadDesc());
+        if (request.getAutorizacion() != null) entity.setAutorizacion(request.getAutorizacion());
+        if (request.getImagenesDx() != null) entity.setImagenesDx(request.getImagenesDx());
+        if (request.getCausaObjecion() != null) entity.setCausaObjecion(request.getCausaObjecion());
+        if (request.getRevSupervision() != null) entity.setRevSupervision(request.getRevSupervision());
+        if (request.getObservacionAuditoria() != null) entity.setObservacionAuditoria(request.getObservacionAuditoria());
+        if (request.getRegimen() != null) entity.setRegimen(request.getRegimen());
+        if (request.getFechaSolicitud() != null) entity.setFechaSolicitud(request.getFechaSolicitud());
+        if (request.getFechaCargue() != null) entity.setFechaCargue(request.getFechaCargue());
+        if (request.getHoraCargue() != null) entity.setHoraCargue(request.getHoraCargue());
+        if (request.getFechaResultado() != null) entity.setFechaResultado(request.getFechaResultado());
+
+        if (request.getEstadoAuditoria() == null || request.getEstadoAuditoria().isEmpty()) {
+            entity.setEstadoAuditoria("PENDIENTE");
+        } else {
+            entity.setEstadoAuditoria(request.getEstadoAuditoria());
+        }
+
+        Cirugia guardado = cirugiaRepository.save(entity);
+        return mapToResponse(guardado);
+    }
+
+    @Override
+    @Transactional
+    public CirugiaResponseDTO duplicar(Long id, CirugiaUpdateRequestDTO request) {
+        Cirugia original = cirugiaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Cirugia no encontrada con id: " + id));
+
+        Cirugia entity = new Cirugia();
+        entity.setTipoProcedimiento(original.getTipoProcedimiento());
+        entity.setPaciente(original.getPaciente());
+        entity.setIngreso(original.getIngreso());
+        entity.setCups(original.getCups());
+        entity.setProcedCod(original.getProcedCod());
+        entity.setGqx(original.getGqx());
+        entity.setIntervencion(original.getIntervencion());
+        entity.setEspecialidad(original.getEspecialidad());
+        entity.setMedico(original.getMedico());
+        entity.setAnestesiologo(original.getAnestesiologo());
+        entity.setEntidadSalud(original.getEntidadSalud());
+        entity.setAyudante1(original.getAyudante1());
+        entity.setAyudante2(original.getAyudante2());
+        entity.setLiquidacion(original.getLiquidacion());
+        entity.setAuditoriaPorcentaje(original.getAuditoriaPorcentaje());
+        entity.setNovedad(original.getNovedad());
+        entity.setAutorizacion(original.getAutorizacion());
+        entity.setImagenesDx(original.getImagenesDx());
+        entity.setCausaObjecion(original.getCausaObjecion());
+        entity.setRevSupervision(original.getRevSupervision());
+        entity.setObservacionAuditoria(original.getObservacionAuditoria());
+        entity.setRegimen(original.getRegimen());
+        entity.setFechaSolicitud(original.getFechaSolicitud());
+        entity.setFechaCargue(original.getFechaCargue());
+        entity.setHoraCargue(original.getHoraCargue());
+        entity.setFechaResultado(original.getFechaResultado());
+
+        if (request.getPacienteNumeroIdentificacion() != null && !request.getPacienteNumeroIdentificacion().isEmpty()) {
+            List<Paciente> listaPac = pacienteRepository.findAllByNumeroIdentificacion(request.getPacienteNumeroIdentificacion());
+            if (!listaPac.isEmpty()) entity.setPaciente(listaPac.get(0));
+        }
+
+        if (request.getIngresoNumero() != null && !request.getIngresoNumero().isEmpty() && entity.getPaciente() != null) {
+            List<Ingreso> listaIng = ingresoRepository.findAllByNumeroIngreso(request.getIngresoNumero());
+            if (!listaIng.isEmpty()) entity.setIngreso(listaIng.get(0));
+        }
+
+        if (request.getCupsCodigo() != null && !request.getCupsCodigo().isEmpty()) {
+            List<CupsProcedimiento> listaCups = cupsProcedimientoRepository.findAllByCodigo(request.getCupsCodigo());
+            if (!listaCups.isEmpty()) entity.setCups(listaCups.get(0));
+        }
+
+        if (request.getEspecialidadNombre() != null && !request.getEspecialidadNombre().isEmpty()) {
+            List<Especialidad> listaEsp = especialidadRepository.findAllByNombreContainingIgnoreCase(request.getEspecialidadNombre());
+            if (listaEsp.isEmpty()) {
+                try {
+                    Especialidad e = new Especialidad();
+                    e.setNombre(request.getEspecialidadNombre());
+                    e = especialidadRepository.save(e);
+                    entity.setEspecialidad(e);
+                } catch (Exception ex) {
+                    listaEsp = especialidadRepository.findAllByNombreContainingIgnoreCase(request.getEspecialidadNombre());
+                    if (!listaEsp.isEmpty()) entity.setEspecialidad(listaEsp.get(0));
+                }
+            } else {
+                entity.setEspecialidad(listaEsp.get(0));
+            }
+        }
+
+        if (request.getMedicoNombre() != null && !request.getMedicoNombre().isEmpty()) {
+            List<Medico> listaMed = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getMedicoNombre());
+            if (listaMed.isEmpty()) {
+                try {
+                    Medico m = new Medico();
+                    m.setNombreCompleto(request.getMedicoNombre());
+                    m = medicoRepository.save(m);
+                    entity.setMedico(m);
+                } catch (Exception ex) {
+                    listaMed = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getMedicoNombre());
+                    if (!listaMed.isEmpty()) entity.setMedico(listaMed.get(0));
+                }
+            } else {
+                entity.setMedico(listaMed.get(0));
+            }
+        }
+
+        if (request.getAnestesiologoNombre() != null && !request.getAnestesiologoNombre().isEmpty()) {
+            List<Medico> listaAnest = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getAnestesiologoNombre());
+            if (listaAnest.isEmpty()) {
+                try {
+                    Medico m = new Medico();
+                    m.setNombreCompleto(request.getAnestesiologoNombre());
+                    m = medicoRepository.save(m);
+                    entity.setAnestesiologo(m);
+                } catch (Exception ex) {
+                    listaAnest = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(request.getAnestesiologoNombre());
+                    if (!listaAnest.isEmpty()) entity.setAnestesiologo(listaAnest.get(0));
+                }
+            } else {
+                entity.setAnestesiologo(listaAnest.get(0));
+            }
+        }
+
+        if (request.getEntidadSaludNombre() != null && !request.getEntidadSaludNombre().isEmpty()) {
+            List<EntidadesSalud> listaEnt = entidadesSaludRepository.findAllByNombreContainingIgnoreCase(request.getEntidadSaludNombre());
+            if (listaEnt.isEmpty()) {
+                try {
+                    EntidadesSalud e = new EntidadesSalud();
+                    e.setNombre(request.getEntidadSaludNombre().trim());
+                    e = entidadesSaludRepository.save(e);
+                    entity.setEntidadSalud(e);
+                } catch (Exception ex) {
+                    listaEnt = entidadesSaludRepository.findAllByNombreContainingIgnoreCase(request.getEntidadSaludNombre());
+                    if (!listaEnt.isEmpty()) entity.setEntidadSalud(listaEnt.get(0));
+                }
+            } else {
+                entity.setEntidadSalud(listaEnt.get(0));
+            }
+        }
+
+        if (request.getTipoProcedimiento() != null) entity.setTipoProcedimiento(request.getTipoProcedimiento());
+        if (request.getProcedCod() != null) entity.setProcedCod(request.getProcedCod());
+        if (request.getGqx() != null) entity.setGqx(request.getGqx());
+        if (request.getIntervencion() != null) entity.setIntervencion(request.getIntervencion());
+        if (request.getAyudante1() != null) entity.setAyudante1(request.getAyudante1());
+        if (request.getAyudante2() != null) entity.setAyudante2(request.getAyudante2());
+        if (request.getLiquidacion() != null) entity.setLiquidacion(request.getLiquidacion());
+        if (request.getAuditoriaPorcentaje() != null) entity.setAuditoriaPorcentaje(request.getAuditoriaPorcentaje());
+        if (request.getNovedadDesc() != null) entity.setNovedad(request.getNovedadDesc());
+        if (request.getAutorizacion() != null) entity.setAutorizacion(request.getAutorizacion());
+        if (request.getImagenesDx() != null) entity.setImagenesDx(request.getImagenesDx());
+        if (request.getCausaObjecion() != null) entity.setCausaObjecion(request.getCausaObjecion());
+        if (request.getRevSupervision() != null) entity.setRevSupervision(request.getRevSupervision());
+        if (request.getObservacionAuditoria() != null) entity.setObservacionAuditoria(request.getObservacionAuditoria());
+        if (request.getRegimen() != null) entity.setRegimen(request.getRegimen());
+        if (request.getFechaSolicitud() != null) entity.setFechaSolicitud(request.getFechaSolicitud());
+        if (request.getFechaCargue() != null) entity.setFechaCargue(request.getFechaCargue());
+        if (request.getHoraCargue() != null) entity.setHoraCargue(request.getHoraCargue());
+        if (request.getFechaResultado() != null) entity.setFechaResultado(request.getFechaResultado());
+
+        if (request.getEstadoAuditoria() != null) entity.setEstadoAuditoria(request.getEstadoAuditoria());
+
+        Cirugia guardado = cirugiaRepository.save(entity);
+        return mapToResponse(guardado);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public CirugiaResponseDTO obtenerPorId(Long id) {
         Cirugia entity = cirugiaRepository.findById(id)

@@ -86,7 +86,7 @@ public class Cirugia {
     @Column(name = "OBSERVACION_AUDITORIA", columnDefinition = "TEXT")
     private String observacionAuditoria;
 
-    @Column(name = "ESTADO_AUDITORIA", length = 20)
+    @Column(name = "ESTADO_AUDITORIA", length = 50)
     private String estadoAuditoria;
 
     @Column(name = "REGIMEN", length = 50)

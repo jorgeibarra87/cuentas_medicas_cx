@@ -20,4 +20,7 @@ public class DinamicaCirugiaDTO {
     private String fechaResultado;
     private String regimen;
     private String entidad;
+    private String anestesiologo;
+    private String ayudante1;
+    private String ayudante2;
 }

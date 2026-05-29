@@ -352,6 +352,26 @@ public class CirugiaServiceImpl implements CirugiaService {
                     }
                 }
 
+                if (dato.getAnestesiologo() != null && !dato.getAnestesiologo().isEmpty()) {
+                    List<Medico> listaAnest = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(dato.getAnestesiologo());
+                    if (listaAnest.isEmpty()) {
+                        try {
+                            Medico m = new Medico();
+                            m.setNombreCompleto(dato.getAnestesiologo());
+                            m = medicoRepository.save(m);
+                            cirugia.setAnestesiologo(m);
+                        } catch (Exception ex) {
+                            listaAnest = medicoRepository.findAllByNombreCompletoContainingIgnoreCase(dato.getAnestesiologo());
+                            if (!listaAnest.isEmpty()) cirugia.setAnestesiologo(listaAnest.get(0));
+                        }
+                    } else {
+                        cirugia.setAnestesiologo(listaAnest.get(0));
+                    }
+                }
+
+                cirugia.setAyudante1(dato.getAyudante1());
+                cirugia.setAyudante2(dato.getAyudante2());
+
                 if (dato.getEntidad() != null && !dato.getEntidad().isEmpty()) {
                     List<EntidadesSalud> listaEnt = entidadesSaludRepository.findAllByNombreContainingIgnoreCase(dato.getEntidad());
                     if (listaEnt.isEmpty()) {
